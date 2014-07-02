@@ -1,0 +1,40 @@
+## Outline
+
+- Introduction
+    - Functional JavaScript
+    - The Power of Types
+    - Prerequisites
+    - How to Read This Book
+    - About PureScript
+    - Getting Help
+    - Acknowledgements
+- Getting Started
+    - Installing the PureScript Compiler
+    - Installing Prerequisites
+    - Creating Your First Project
+- Maps and Folds
+    - 
+- Pattern Matching
+    -
+- Type Classes
+    - 
+- Working with JSON Data
+    - 
+- JavaScript Interop
+    - 
+- Handling Effects
+    - 
+- Intermission - Abstracting Control
+    - Functors
+    - Applicatives
+    - Monads
+- Applicative Validation
+    -
+- Escape from Callback Hell
+    - 
+- Parsing 
+    -
+- Testing with QuickCheck
+    -
+- Domain Specific Languages
+    - 
