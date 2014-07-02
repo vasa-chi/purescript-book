@@ -15,7 +15,7 @@
 - Maps and Folds
     - 
 - Pattern Matching
-    -
+    - 
 - Type Classes
     - 
 - Working with JSON Data
@@ -29,12 +29,12 @@
     - Applicatives
     - Monads
 - Applicative Validation
-    -
+    - 
 - Escape from Callback Hell
     - 
 - Parsing 
-    -
+    - 
 - Testing with QuickCheck
-    -
+    - 
 - Domain Specific Languages
     - 
