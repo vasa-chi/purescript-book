@@ -1,0 +1,4 @@
+purescript-book
+===============
+
+PureScript Book
