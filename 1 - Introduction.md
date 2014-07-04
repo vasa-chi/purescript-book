@@ -38,7 +38,23 @@ PureScript is a programming language which aims to address these issues. It feat
 
 The debate over statically typed languages versus dynamically typed languages is well-documented. In this book, I will try to convince you (or reaffirm your belief) that static types are not only a means of gaining confidence in the correctness of your programs, but also an aid to development in their own right. Refactoring a large body of code in JavaScript can be difficult when using any but the simplest of abstractions, but an expressive type system together with a type checker can even make refactoring into an enjoyable, interactive experience.
 
-In addition, the safety net provided by a type system enables more advanced forms of abstraction. In fact, PureScript provides a powerful form of abstraction which is fundamentally type-driven: type classes, made popular in the functional programming language Haskell. 
+In addition, the safety net provided by a type system enables more advanced forms of abstraction. In fact, PureScript provides a powerful form of abstraction which is fundamentally type-driven: type classes, made popular in the functional programming language Haskell.
+
+## Polyglot Web Programming
+
+Functional programming has its success stories - applications where has been particularly successful: data analysis, parsing, compiler implementation, generic programming, parallelism, to name a few.
+
+It would be possible to practice end-to-end application development in a functional language like PureScript. PureScript provides the ability to import existing JavaScript code, by providing types for its values and functions, and then to use those functions in regular PureScript code. We'll see this approach later in the book.
+
+However, one of PureScript's strengths is its interoperability with other languages which target JavaScript. Another approach would be to use PureScript for a subset of your application's development, and to use one or more other languages to write the rest of the JavaScript.
+
+Here are some examples:
+
+- Core logic written in PureScript, with the user interface written in JavaScript.
+- Application written in JavaScript or another compile-to-JS language, with tests written in PureScript.
+- PureScript used to automate user interface tests for an existing application.
+
+In this book, I'll focus on solving small problems with PureScript. The solutions could be integrated into a larger application, but we will also look at how to call PureScript code from JavaScript, and vice versa.
 
 ## Prerequisites
 
@@ -86,3 +102,5 @@ I started working on the PureScript compiler in response to my experience with J
 I maintain a blog at [http://functorial.com](http://functorial.com), and can be reached on Twitter at @paf31.
 
 ## Acknowledgements
+
+I would like to thank the many contributors who helped PureScript to reach its current state. Without the huge collective effort which has been made on the compiler, tools, libraries, documentation and tests, the project would certainly have failed. 
