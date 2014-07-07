@@ -231,7 +231,77 @@ $ npm install
 
 ## Tracking Dependencies with Bower
 
+For our phone book application (the goal of this chapter), we will need a data structure to store contact information. To keep things simple for this introductory chapter, we'll use a simple sorted array to store our data.
+
+The `purescript-arrays` package contains helper functions for working with sorted arrays that we will find useful, so let's install it. Just like we did with our `npm` dependencies, we could download this package directly on the command line, by typing:
+
+```
+$ bower install purescript-arrays#0.1.8
+```
+
+This will install version 0.1.8 of the `purescript-arrays` library, along with its dependencies.
+
+However, we can set up a `bower.json` file which contains our Bower dependencies, just like we used `npm init` to create `package.json` and control our NPM dependencies.
+
+On the command line, run:
+
+```
+$ bower init
+```
+
+Just like in the case of NPM, you will be asked a collection of questions, at the end of which, a `bower.json` file will be placed in the project directory. During this process, you will be asked whether you would like to include existing dependencies in the project file. If you select Yes, you should see a section like this in `bower.json`:
+
+```
+dependencies: {
+  'purescript-arrays': '0.1.8'
+}
+```
+
+Now, your users will not have to specify dependencies by hand, but instead can pull dependendencies by simply invoking:
+
+```
+$ bower update
+```
+
+Let's update our Grunt script to include dependencies pulled from Bower. Edit `Gruntfile.js` to change the source files line as follows:
+
+```
+src: ["src/**/*.purs", "bower_components/**/src/**/*.purs"]
+```
+
+This line includes source files from the `bower_components` directory. If you have a customer Bower configuration, you may have to change this line accordingly.
+
+## NPM or Bower?
+
+You may be asking yourself: why do we need to use two package managers? Can't the PureScript libraries be included in the NPM registry?
+
+The PureScript community has standardised on using Bower for PureScript dependencies for a number of reasons:
+
+- PureScript library packages rarely contain JavaScript source code, so are not suitable for deployment into the NPM registry without being compiled first.
+- The Bower registry simply maintains a mapping from package names and versions to existing Git repositories, instead of hosting code directly. This allows the community to use existing tools such as GitHub to manage code and releases.
+- Bower does not require packages to conform to any particular layout, such as the CommonJS module standard.
+
+Of course, you are free to use any package manager of your choice - the PureScript compiler and tools are not dependent on Bower (or NPM or Grunt, for that matter) in any way.
+
 ## Building CommonJS Modules
+
+The PureScript compiler `psc` generates JavaScript code in a single output file, which is suitable for use in a web browser. There is another option for compilation, called `psc-make`, which can generate a separate CommonJS module for every PureScript module which is compiled. This may be preferable if you are targetting a runtime like NodeJS which supports the CommonJS module standard.
+
+To invoke `psc-make` on the command line, specify the input files, and a directory in which CommonJS modules should be created with the `--output` option:
+
+```
+$ psc-make src/Main.purs --output dist/
+```
+
+This will create a subdirectory inside the `dist/` directory for every module provided as an input file. If you are using Bower dependencies, don't forget to include source files in the `bower_components/` directory as well!
+
+The `grunt-purescript` plugin also supports compilation using `psc-make`. To use `psc-make` from Grunt: make the following changes in the `Gruntfile.js` file:
+
+- Change the build target from `psc` to `pscMake`.
+- Change the destination from a single file `dist/Main.js` to a directory: `dest: "dist/"`
+- Change the default task to reference the `pscMake` build target.
+
+Now, the `grunt` command line tool should create a subdirectory under `dist/` for the `Main` module and every one of its dependencies.
 
 ## Using Grunt Project Templates
 
