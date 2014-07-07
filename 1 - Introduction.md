@@ -82,6 +82,21 @@ main = Debug.Trace.trace "Hello, World!"
 
 You can either type these in by hand (recommended for shorter code samples), or download content from the book's website at [https://github.com/paf31/purescript-book](https://github.com/paf31/purescript-book).
 
+Commands which should be typed at the command line will be preceded by a dollar symbol:
+
+```
+$ psc src/Main.purs
+```
+
+Usually, these commands will be tailored to Linux/Mac OS users, so Windows users may need to make small changes such as modifying the file separator, or replacing shell built-ins with their Windows equivalents.
+
+Commands which should be typed at the `psci` interactive mode prompt will be preceded by an angle bracket:
+
+```
+> 1 + 2
+3
+```
+
 ## Getting Help
 
 If you get stuck at any point, there are a number of resources available online for learning PureScript:
