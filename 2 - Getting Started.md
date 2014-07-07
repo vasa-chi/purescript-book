@@ -283,7 +283,7 @@ The PureScript community has standardised on using Bower for PureScript dependen
 
 Of course, you are free to use any package manager of your choice - the PureScript compiler and tools are not dependent on Bower (or NPM or Grunt, for that matter) in any way.
 
-## Building CommonJS Modules
+## Optional: Building CommonJS Modules
 
 The PureScript compiler `psc` generates JavaScript code in a single output file, which is suitable for use in a web browser. There is another option for compilation, called `psc-make`, which can generate a separate CommonJS module for every PureScript module which is compiled. This may be preferable if you are targetting a runtime like NodeJS which supports the CommonJS module standard.
 
@@ -303,9 +303,133 @@ The `grunt-purescript` plugin also supports compilation using `psc-make`. To use
 
 Now, the `grunt` command line tool should create a subdirectory under `dist/` for the `Main` module and every one of its dependencies.
 
+## Optional: Using the Interactive Mode
+
+This section is optional, but recommended.
+
+The PureScript compiler also ships with an interactive REPL called `psci`. This can be very useful for testing your code, and experimenting with new ideas.
+
+The `grunt-purescript` plugin can be configured to generate a `psci` configuration for your source files. This saves you the trouble of having to load your modules into `psci` manually.
+
+To set this up, add a new build target to your `Gruntfile.js` file, below the `psc` or `pscMake` target:
+
+```
+dotPsci: ["src/**/*.purs", "bower_components/**/src/**/*.purs"]
+```
+
+Also, add this target to the default task:
+
+```
+grunt.registerTask("default", ["psc:all", "dotPsci"]);
+```
+
+Now, if you run `grunt`, a `.psci` file will be generated in the project directory. This file specifies the commands which should be used to configure `psci` when the interactive mode is loaded.
+
+Load `psci` now:
+
+```
+$ psci
+ ____                 ____            _       _   
+|  _ \ _   _ _ __ ___/ ___|  ___ _ __(_)_ __ | |_ 
+| |_) | | | | '__/ _ \___ \ / __| '__| | '_ \| __|
+|  __/| |_| | | |  __/___) | (__| |  | | |_) | |_ 
+|_|    \__,_|_|  \___|____/ \___|_|  |_| .__/ \__|
+                                       |_|        
+
+:? shows help
+
+Expressions are terminated using Ctrl+D
+> 
+```
+
+You can type `:?` to see a list of commands:
+
+```
+> :?
+The following commands are available:
+
+    :?              Show this help menu
+    :i <module>     Import <module> for use in PSCI
+    :m <file>       Load <file> for importing
+    :q              Quit PSCi
+    :r              Reset
+    :t <expr>       Show the type of <expr>
+```
+
+By pressing the Tab key, you should be able to see a list of all functions available in your own code, as well as any Bower dependencies and the Prelude modules.
+
+Try evaluating a few expressions now (expressions are terminated with Ctrl+D):
+
+```
+> 1 + 2
+3
+
+> "Hello, " ++ "World!"
+"Hello, World!"
+```
+
+You can also use `psci` to define functions:
+
+```
+> let square x = x * x
+
+> square 10
+100
+```
+
+Don't worry if the syntax of these examples is unclear right now - it will make more sense as you read through the book.
+
+Finally, you can check the type of an expression by using the `:t` command:
+
+```
+> :t true
+Prim.Boolean
+
+> :t [1, 2, 3]
+[Prim.Number]
+```
+
+Try out the interactive mode now. If you get stuck at any point, simply use the Reset command `:r` to unload any modules which may be compiled in memory.
+
 ## Using Grunt Project Templates
 
-## Using the Interactive Mode
+NPM, Grunt, and Bower can be customized in a great many ways, to support a variety of interesting build processes. However, for simple projects, the steps can be automated by using a Grunt project template.
+
+The `grunt-init` tool provides a way to bootstrap a simple project from a template. The `grunt-init-purescript` project provides a simple template for a PureScript project, including a simple test suite.
+
+To set up a project using `grunt-init`, first install the command line tool using NPM:
+
+```
+$ npm install -g grunt-init
+```
+
+Now, clone the PureScript template into your home directory. For example, on Linux, or Mac:
+
+```
+$ mkdir ~/.grunt-init
+$ git clone https://github.com/purescript-contrib/grunt-init-purescript.git \
+    ~/.grunt-init/purescript
+```
+
+Now, you can create a simple project in a new directory:
+
+```
+$ mkdir new-project
+$ cd new-project/
+$ grunt-init purescript
+```
+
+You will be asked a number of simple questions, after which the project will be initialized in the current directory, and ready to build, using the commands we have already seen:
+
+```
+$ npm install
+$ bower update
+$ grunt
+```
+
+The final command will build the source files, and run the test suite.
+
+You can use this project template as the basis of a more complicated project.
 
 ## All Together Now ...
 
