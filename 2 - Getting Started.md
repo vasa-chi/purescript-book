@@ -233,13 +233,13 @@ $ npm install
 
 For our phone book application (the goal of this chapter), we will need a data structure to store contact information. To keep things simple for this introductory chapter, we'll use a simple sorted array to store our data.
 
-The `purescript-arrays` package contains helper functions for working with sorted arrays that we will find useful, so let's install it. Just like we did with our `npm` dependencies, we could download this package directly on the command line, by typing:
+The `purescript-lists` package contains helper functions for working with linked lists that we will find useful, so let's install it. Just like we did with our `npm` dependencies, we could download this package directly on the command line, by typing:
 
 ```
-$ bower install purescript-arrays#0.1.8
+$ bower install purescript-lists#0.0.1
 ```
 
-This will install version 0.1.8 of the `purescript-arrays` library, along with its dependencies.
+This will install version 0.0.1 of the `purescript-lists` library, along with its dependencies.
 
 However, we can set up a `bower.json` file which contains our Bower dependencies, just like we used `npm init` to create `package.json` and control our NPM dependencies.
 
@@ -253,7 +253,7 @@ Just like in the case of NPM, you will be asked a collection of questions, at th
 
 ```
 dependencies: {
-  'purescript-arrays': '0.1.8'
+  'purescript-lists': '0.0.1'
 }
 ```
 
@@ -432,5 +432,79 @@ The final command will build the source files, and run the test suite.
 You can use this project template as the basis of a more complicated project.
 
 ## All Together Now ...
+
+Let's put these steps together and build a phone-book library which we can use from `psci` or Javascript to manage a list of phone contacts. This code will introduce some new ideas from the syntax of PureScript.
+
+Create a new file `src/Data/PhoneBook.purs`. It should start with its module name and any imports, as before:
+
+```
+module Data.PhoneBook where
+
+import Data.List
+```
+
+Here, we import the `Data.List` module, which is provided by the `purescript-lists` package which we installed using Bower. It contains a few functions which we will need for working with linked lists.
+
+First, let's define a type for records in our phone book:
+
+```
+type Entry = { firstName :: String, lastName :: String, phone :: String }
+```
+
+This defines a _type synonym_ called `Entry` - the type `Entry` is synonymous with a record type with three fields: `firstName`, `lastName` and `phone`, all of which are expected to be strings.
+
+Now let's define a second type synonym, for a phone book data structure, which will simply be stored as a sorted list of entries:
+
+```
+type PhoneBook = List Entry
+```
+
+Note that just like function application, type constructors are applied to other types simply by juxtaposition: the type `List Entry` is in fact the generic type `List` _applied_ to the type `Entry` - it is a list of entries.
+
+Let's write our first function, which will render a phone book entry as a string. We start by giving the function a type. This is optional, but good practice, since it acts as a form of documentation:
+
+```
+showEntry :: Entry -> String
+```
+
+This type signature says that `showEntry` is a function, which takes an `Entry` as an argument and returns a `String`. Next follows the code for `showEntry`:
+
+```
+showEntry entry = entry.lastName ++ ", " ++ 
+                  entry.firstName ++ ": " ++ 
+                  entry.phone
+```
+
+This function works by concatenating the three fields of the `Entry` record into a single string. Fields are accessed with a dot, followed by the field name. In PureScript, string concatenation uses the double-plus operator (`++`) instead of a single plus, as in Javascript. Note also that the `entry` name is brought into scope by typing it on the left hand side of the equals symbol.
+
+Now let's create a value which represents an empty phone book: just an empty list.
+
+```
+emptyBook :: PhoneBook
+emptyBook = empty
+```
+
+We will also need a function for inserting a value into a phone book. For this, we can use the existing `insertBy` function from the `Data.List` module. This function takes a function as an argument which compares two items in a list, and inserts an item into the list at the correct position.
+
+Start by givjng the type of `insertEntry`:
+
+```
+insertEntry :: Entry -> PhoneBook -> PhoneBook
+```
+
+This type signature says that `insertEntry` takes an `Entry` as its first argument, and a `PhoneBook` as a second argument, and returns a new `PhoneBook`.
+
+To see the type of `insertBy`, open `psci` and use the `:t` command:
+
+```
+$ psci
+
+> :t Data.List.insertBy
+forall a. (a -> a -> Prelude.Ordering) -> a -> Data.List.List a -> Data.List.List a
+```
+
+This type is quite confusing, but don't worry. We'll pick its definition apart.
+
+_TODO_
 
 ## Conclusion
