@@ -14,15 +14,10 @@ emptyBook :: PhoneBook
 emptyBook = empty
 
 insertEntry :: Entry -> PhoneBook -> PhoneBook
-insertEntry entry book = insertBy compareEntries entry book
-  where
-  compareEntries :: Entry -> Entry -> Ordering
-  compareEntries e1 e2 | e1.lastName < e2.lastName = LT
-  compareEntries e1 e2 | e1.lastName > e2.lastName = GT
-  compareEntries e1 e2 = compare e1.firstName e2.firstName
+insertEntry entry book = Cons entry book
  
 findEntry :: String -> String -> PhoneBook -> Maybe Entry
-findEntry firstName lastName = head <<< filter filterEntry
+findEntry firstName lastName book = head $ filter filterEntry book
   where
   filterEntry :: Entry -> Boolean
   filterEntry entry = entry.firstName == firstName && entry.lastName == lastName
