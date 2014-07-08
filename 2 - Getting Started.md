@@ -231,7 +231,7 @@ $ npm install
 
 ## Tracking Dependencies with Bower
 
-For our phone book application (the goal of this chapter), we will need a data structure to store contact information. To keep things simple for this introductory chapter, we'll use a simple sorted array to store our data.
+For our phone book application (the goal of this chapter), we will need a data structure to store contact information. To keep things simple for this introductory chapter, we'll use a simple linked list to store our data.
 
 The `purescript-lists` package contains helper functions for working with linked lists that we will find useful, so let's install it. Just like we did with our `npm` dependencies, we could download this package directly on the command line, by typing:
 
@@ -445,21 +445,25 @@ import Data.List
 
 Here, we import the `Data.List` module, which is provided by the `purescript-lists` package which we installed using Bower. It contains a few functions which we will need for working with linked lists.
 
-First, let's define a type for records in our phone book:
+## Defining Our Types
+
+A good first step when tackling a new problem in PureScript is to write out type definitions for any values you will be working with. First, let's define a type for records in our phone book:
 
 ```
 type Entry = { firstName :: String, lastName :: String, phone :: String }
 ```
 
-This defines a _type synonym_ called `Entry` - the type `Entry` is synonymous with a record type with three fields: `firstName`, `lastName` and `phone`, all of which are expected to be strings.
+This defines a _type synonym_ called `Entry` - the type `Entry` is synonymous with the type on the right of the equals symbol: a record type with three fields: `firstName`, `lastName` and `phone`, all of which are expected to be strings.
 
-Now let's define a second type synonym, for a phone book data structure, which will simply be stored as a sorted list of entries:
+Now let's define a second type synonym, for a phone book data structure, which will simply be stored as a linked list of entries:
 
 ```
 type PhoneBook = List Entry
 ```
 
 Note that just like function application, type constructors are applied to other types simply by juxtaposition: the type `List Entry` is in fact the generic type `List` _applied_ to the type `Entry` - it is a list of entries.
+
+## Displaying Phone Book Entries
 
 Let's write our first function, which will render a phone book entry as a string. We start by giving the function a type. This is optional, but good practice, since it acts as a form of documentation:
 
@@ -477,34 +481,88 @@ showEntry entry = entry.lastName ++ ", " ++
 
 This function works by concatenating the three fields of the `Entry` record into a single string. Fields are accessed with a dot, followed by the field name. In PureScript, string concatenation uses the double-plus operator (`++`) instead of a single plus, as in Javascript. Note also that the `entry` name is brought into scope by typing it on the left hand side of the equals symbol.
 
-Now let's create a value which represents an empty phone book: just an empty list.
+## Test Early, Test Often
+
+The `psci` interactive mode allows for rapid prototyping with immediate feedback, so let's use it to verify that our first function behaves as expected.
+
+First, build the code you've written:
+
+```
+$ grunt
+```
+
+Next, load `psci`, and use the `:i` command to import your new module:
+
+```
+$ psci
+
+> :i Data.PhoneBook
+```
+
+We can create an entry by using a record literal, just like in JavaScript. Bind it to a name with a `let` expression:
+
+```
+> let example = { firstName: "John", lastName: "Smith", phone: "555-555-5555" }
+```
+
+(don't forget to terminate the expression with Ctrl+D). Now, try applying our function to the example:
+
+```
+> showEntry example
+
+"Smith, John: 555-555-5555"
+```
+
+Congratulations! You've just written and executed your first PureScript function.
+
+## More Functions
+
+Now let's write some utility functions for working with phone books. We will need a value which represents an empty phone book: an empty list.
 
 ```
 emptyBook :: PhoneBook
 emptyBook = empty
 ```
 
-We will also need a function for inserting a value into a phone book. For this, we can use the existing `insertBy` function from the `Data.List` module. This function takes a function as an argument which compares two items in a list, and inserts an item into the list at the correct position.
-
-Start by givjng the type of `insertEntry`:
+We will also need a function for inserting a value into an existing phone book. We will call this function `insertEntry`. Start by giving its type:
 
 ```
 insertEntry :: Entry -> PhoneBook -> PhoneBook
 ```
 
-This type signature says that `insertEntry` takes an `Entry` as its first argument, and a `PhoneBook` as a second argument, and returns a new `PhoneBook`.
+This type signature says that `insertEntry` takes an `Entry` as its first argument, and a `PhoneBook` as a second argument, and returns a new `PhoneBook`. There are two things worth mentioning here:
 
-To see the type of `insertBy`, open `psci` and use the `:t` command:
+- We don't modify the existing `PhoneBook` directly. Instead, we return a new `PhoneBook` which contains the same data. As such, `PhoneBook` is an example of a _persistent data structure_. This is an important idea in PureScript - mutation is a side-effect of code, and inhibits our ability to reason effectively about its behaviour, so we prefer pure functions and immutable data where possible.
+- Functions in PureScript take exactly one argument. While it looks like the `insertEntry` function takes two arguments, it is in fact an example of a _curried function_. The `->` operator in the type of `insertEntry` associates to the right, so the compiler in fact parses the type as `Entry -> (PhoneBook -> PhoneBook)`. That is, `insertEntry` takes a single argument, an `Entry`, and returns a new function, which in turn takes a single `PhoneBook` argument and returns a new `PhoneBook`. We'll cover this idea in more depth in the next chapter.
+
+To implement `insertEntry`, we can use the `Cons` function from `Data.List`. To see its type, open `psci` and use the `:t` command:
 
 ```
 $ psci
 
-> :t Data.List.insertBy
-forall a. (a -> a -> Prelude.Ordering) -> a -> Data.List.List a -> Data.List.List a
+> :t Data.List.Cons
+
+forall a. a -> Data.List.List a -> Data.List.List a
 ```
 
-This type is quite confusing, but don't worry. We'll pick its definition apart.
+This type signature says that `Cons` takes a value of some type `a`, and a list of elements of type `a`, and returns a new list with entries of the same type. In our case, we have two pieces of data: an `Entry`, and a `PhoneBook`. But `PhoneBook` is just a synonym for `List Entry`, so if we choose `Entry` for the type `a`, we can apply `Cons` and get a new `List Entry`. But again, that's just the same thing as a `PhoneBook`, which is exactly what we wanted!
+
+Here is our implementation of `insertEntry`:
+
+```
+insertEntry entry book = Cons entry book
+```
+
+This brings the two names `entry` and `book` into scope, on the left hand side of the equals symbol, and then applies the `Cons` function to create the result.
+
+## 
 
 _TODO_
 
+## Exercises
+
+1. _TODO_
+
 ## Conclusion
+
+_TODO_
