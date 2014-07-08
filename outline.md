@@ -38,3 +38,8 @@
     - 
 - Domain Specific Languages
     - 
+
+## Ideas
+
+- Finally tagless encodings
+- jQuery / React etc.
