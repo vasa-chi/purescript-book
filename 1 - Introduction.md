@@ -42,7 +42,7 @@ In addition, the safety net provided by a type system enables more advanced form
 
 ## Polyglot Web Programming
 
-Functional programming has its success stories - applications where has been particularly successful: data analysis, parsing, compiler implementation, generic programming, parallelism, to name a few.
+Functional programming has its success stories - applications where it has been particularly successful: data analysis, parsing, compiler implementation, generic programming, parallelism, to name a few.
 
 It would be possible to practice end-to-end application development in a functional language like PureScript. PureScript provides the ability to import existing JavaScript code, by providing types for its values and functions, and then to use those functions in regular PureScript code. We'll see this approach later in the book.
 
@@ -96,6 +96,8 @@ Commands which should be typed at the `psci` interactive mode prompt will be pre
 > 1 + 2
 3
 ```
+
+Each chapter will contain exercises, labelled with their difficulty level. It is strongly recommended that you attempt the exercises in each chapter to fully understand the material.
 
 ## Getting Help
 
