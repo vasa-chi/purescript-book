@@ -515,7 +515,7 @@ We can create an entry by using a record literal, just like in JavaScript. Bind 
 
 Congratulations! You've just written and executed your first PureScript function.
 
-## More Functions
+## Creating Phone Books
 
 Now let's write some utility functions for working with phone books. We will need a value which represents an empty phone book: an empty list.
 
@@ -555,14 +555,50 @@ insertEntry entry book = Cons entry book
 
 This brings the two names `entry` and `book` into scope, on the left hand side of the equals symbol, and then applies the `Cons` function to create the result.
 
-## 
+## What's Your Number?
+
+The last function we need to implement for our minimal phone book application will look up a person by name and return the correct `Entry`. This will be a nice application of building programs by composing small functions - a key idea from functional programming.
+
+The key idea is that we can first filter the phone book, keeping only those entries with the correct first and last names. Then we can simply return the head (i.e. the first element) of the resulting list.
+
+With this high-level specification of our approach, we can calculate the type of our function. First open `psci`, and find the types of the `filter` and `head` functions:
+
+```
+$ psci
+
+> :t Data.List.filter
+
+forall a. (a -> Prim.Boolean) -> Data.List.List a -> Data.List.List a
+
+:t Data.List.head
+
+forall a. Data.List.List a -> Data.Maybe.Maybe a
+```
+
+Let's pick apart these two types to understand their meaning.
+
+`filter` works over lists of some unspecified element type `a`. It takes a function as its argument, which takes a list element and returns a Boolean value as a result. `filter` returns another function which takes a `List` and returns another `List`. Note that `filter` is another example of a curried function.
+
+`head` takes a `List` as its argument, and returns a type we haven't seen before: `Maybe a`. `Maybe` represents an optional value, and we will see it in more detail in later chapters.
 
 _TODO_
 
 ## Exercises
 
-1. _TODO_
+1. (Easy) Write a function which looks up an `Entry` given a phone number, by reusing the existing code in `findEntry`.
+2. (Moderate) Write a function which tests whether a name appears in a `PhoneBook`, returning a Boolean value. _Hint_: Use `psci` to find the type of the `Data.List.null` function, which test whether a list is empty or not.
+3. (Difficult) Write a function `removeDuplicates` which removes duplicate phone book entries with the same first and last names. _Hint_: Use `psci` to find the type of the `Data.List.nubBy` function, which removes duplicate elements from a list based on an equality predicate.
 
 ## Conclusion
 
-_TODO_
+In this chapter, we set up a development environment from scratch, and written our first useful PureScript library.
+
+We've covered several new functional programming concepts:
+
+- The importance of immutable data and pure functions.
+- How to use the interactive mode `psci` to experiment with functions and test ideas.
+- The role of types as both a correctness tool, and an implementation tool.
+- The use of curried functions to represent functions of multiple arguments.
+- Creating programs from smaller components by composition.
+
+In the following chapters, we'll build on these ideas as we explore other 
