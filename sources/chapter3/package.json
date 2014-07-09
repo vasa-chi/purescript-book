@@ -1,7 +1,7 @@
 {
-  "name": "purescript-book-chapter1",
+  "name": "purescript-book-chapter3",
   "version": "1.0.0",
-  "description": "Chapter 1 - Getting Started",
+  "description": "Chapter 3 - Functions and Records",
   "main": "",
   "private": true,
   "author": "Phil Freeman",

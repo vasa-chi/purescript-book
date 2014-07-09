@@ -1,6 +1,6 @@
 {
-  "name": "purescript-book-chapter1",
-  "description": "Chapter 1 - Getting Started",
+  "name": "purescript-book-chapter3",
+  "description": "Chapter 3 - Functions and Records",
   "keywords": ["purescript"],
   "ignore": [
     "**/.*",

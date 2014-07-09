@@ -1,6 +1,6 @@
-# purescript-book-chapter1
+# purescript-book-chapter3
 
-Chapter 1 - Getting Started
+Chapter 3 - Functions and Records
 
 ## Building
 
