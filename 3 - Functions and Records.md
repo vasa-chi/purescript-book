@@ -1,6 +1,6 @@
 # Functions and Records
 
-## Chapter Goal
+## Chapter Goals
 
 This chapter will introduce two building blocks of PureScript programs: functions and records. In addition, we'll see how to structure PureScript programs, and how to use types as an aid to program development.
 
