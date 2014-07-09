@@ -183,7 +183,60 @@ The predicate function `filterEntry` is defined as an auxiliary declaration insi
 
 Note that, just like for top-level declarations, it was not necessary to specify a type signature for `filterEntry`. However, doing so is recommended as a form of documentation.
 
-## Testing
+## Tests, Tests, Tests ...
+
+Now that we have the core of a working application, let's try it out using `psci`.
+
+```
+$ psci
+
+> :i Data.PhoneBook 
+```
+
+Let's first try looking up an entry in the empty phone book (we obviously expect this to return an empty result):
+
+```
+> findEntry "John" "Smith" emptyBook
+
+Error in declaration main
+No instance found for Prelude.Show (Data.Maybe.Maybe Data.PhoneBook.Entry<>)
+```
+
+Oh no, our first error! Not to worry, this error simply means that `psci` doesn't know how to print a value of type `Entry` as a String. 
+
+The return type of `findEntry` is `Maybe Entry`, which we can convert to a String by hand. 
+
+Our `showEntry` function expects an argument of type `Entry`, but we have a value of type `Maybe Entry`. Remember that this means that the function returns an optional value of type `Entry`. What we need to do is apply the `showEntry` function if the optional value is present, and propagate the missing value if not.
+
+Fortunately, the Prelude module provides a way to do this. The `<$>` operator can be used to lift a function over an appropriate type constructor like `Maybe` (we'll see more on this function, and others like it, later in the book, when we talk about Functors):
+
+```
+> showEntry <$> findEntry "John" "Smith" emptyBook
+
+Nothing
+```
+
+That's better - the return value `Nothing` indicates that the optional return value does not contain a value - just as we expected.
+
+For ease of use, we can create a function which prints an `Entry` as a String, so that we don't have to use `showEntry` every time:
+
+```
+> let printEntry firstName lastName book = showEntry <$> findEntry firstName lastName book
+```
+
+Now let's create a non-empty phone book, and try again. We'll reuse our example entry from earlier:
+
+```
+> let john = { firstName: "John", lastName: "Smith", phone: "555-555-5555" }
+
+> let book1 = insertEntry john emptyBook
+
+> printEntry "John" "Smith" book1
+
+Just ("Smith, John: 555-555-5555")
+```
+
+This time, the result contained the correct value. Try defining a phone book `book2` with two names by inserting another name into `book1`, and look up each entry by name.
 
 ## Exercises
 
