@@ -2,26 +2,19 @@ module.exports = function(grunt) {
 
   "use strict";
 
-  grunt.initConfig({ 
-  
-    libFiles: [
-      "src/**/*.purs",
-      "bower_components/purescript-*/src/**/*.purs"
-    ],
-    
-    clean: ["output"],
-  
-    pscMake: {
-      lib: {
-        src: ["<%=libFiles%>"]
-      }
-    },
+  grunt.initConfig({
 
-    dotPsci: ["<%=libFiles%>"]
+    psc: {
+      options: {
+        modules: ["Data.PhoneBook"]
+      },
+      all: {
+	src: ["src/**/*.purs", "bower_components/**/src/**/*.purs"],
+        dest: "dist/Main.js"
+      }
+    }
   });
 
-  grunt.loadNpmTasks("grunt-contrib-clean");
   grunt.loadNpmTasks("grunt-purescript");
- 
-  grunt.registerTask("default", ["clean", "pscMake:lib", "dotPsci"]);
+  grunt.registerTask("default", ["psc:all"]);
 };
