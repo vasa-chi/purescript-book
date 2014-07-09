@@ -384,7 +384,7 @@ Try evaluating a few expressions now (expressions are terminated with Ctrl+D):
 Let's try out our `diagonal` function from `psci`:
 
 ```
-> Main.diagonal 8 12
+> Chapter2.diagonal 8 12
 
 13
 ```
