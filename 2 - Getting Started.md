@@ -433,7 +433,9 @@ You can use this project template as the basis of a more complicated project.
 
 ## All Together Now ...
 
-Let's put these steps together and build a phone-book library which we can use from `psci` or Javascript to manage a list of phone contacts. This code will introduce some new ideas from the syntax of PureScript.
+Let's put these steps together and build a phone-book application to manage a list of phone contacts. This code will introduce some new ideas from the syntax of PureScript.
+
+The front-end of our application will be the interactive mode `psci`, but it would be possible to build on this code to write a front-end in Javascript.
 
 Create a new file `src/Data/PhoneBook.purs`. It should start with its module name and any imports, as before:
 
@@ -579,15 +581,43 @@ Let's pick apart these two types to understand their meaning.
 
 `filter` works over lists of some unspecified element type `a`. It takes a function as its argument, which takes a list element and returns a Boolean value as a result. `filter` returns another function which takes a `List` and returns another `List`. Note that `filter` is another example of a curried function.
 
-`head` takes a `List` as its argument, and returns a type we haven't seen before: `Maybe a`. `Maybe` represents an optional value, and we will see it in more detail in later chapters.
+`head` takes a `List` as its argument, and returns a type we haven't seen before: `Maybe a`. `Maybe a` represents an optional value of type `a`, and provides a type-safe alternative to using `null` to indicate a missing value in languages like Javascript. We will see it again in more detail in later chapters. 
 
-_TODO_
+Putting these facts together, a reasonable type signature for our function, which we will call `findEntry`, is:
+
+```
+findEntry :: String -> String -> PhoneBook -> Maybe Entry
+```
+
+This type signature says that findEntry takes two strings, the first and last names, and a `PhoneBook`, and returns an optional `Entry`. The optional result will contain a value only if the name is found in the phone book.
+
+Here is the definition of `findEntry`:
+
+```
+findEntry firstName lastName book = head (filter filterEntry book)
+  where
+  filterEntry :: Entry -> Boolean
+  filterEntry entry = entry.firstName == firstName && entry.lastName == lastName
+```
+
+Let's go over this code step by step.
+
+`findEntry` brings three names into scope: `firstName`, and `lastName`, both representing strings, and `book`, a `PhoneBook`.
+
+The right hand side of the definition combines the `filter` and `head` functions: first, the list of entries is filtered, and the `head` function is applied to the result.
+
+The predicate function `filterEntry` is defined as an auxiliary declaration inside a `where` clause. This way, the `filterEntry` function is available inside the definition of our function, but not outside it. Also, it can depend on the arguments to the enclosing function, which is essential here because `filterEntry` uses the `firstName` and `lastName` arguments to filter the specified `Entry`.
+
+Note that, just like for top-level declarations, it was not necessary to specify a type signature for `filterEntry`. However, doing so is recommended as a form of documentation.
+
+## Testing
 
 ## Exercises
 
-1. (Easy) Write a function which looks up an `Entry` given a phone number, by reusing the existing code in `findEntry`.
-2. (Moderate) Write a function which tests whether a name appears in a `PhoneBook`, returning a Boolean value. _Hint_: Use `psci` to find the type of the `Data.List.null` function, which test whether a list is empty or not.
-3. (Difficult) Write a function `removeDuplicates` which removes duplicate phone book entries with the same first and last names. _Hint_: Use `psci` to find the type of the `Data.List.nubBy` function, which removes duplicate elements from a list based on an equality predicate.
+1. (Easy) Test your understanding of the `findEntry` function by writing down the types of each of its major subexpressions. For example, the type of the `head` function as used is specialized to `List Entry -> Maybe Entry`.
+1. (Easy) Write a function which looks up an `Entry` given a phone number, by reusing the existing code in `findEntry`. Test your function in `psci`.
+1. (Moderate) Write a function which tests whether a name appears in a `PhoneBook`, returning a Boolean value. _Hint_: Use `psci` to find the type of the `Data.List.null` function, which test whether a list is empty or not.
+1. (Difficult) Write a function `removeDuplicates` which removes duplicate phone book entries with the same first and last names. _Hint_: Use `psci` to find the type of the `Data.List.nubBy` function, which removes duplicate elements from a list based on an equality predicate.
 
 ## Conclusion
 
@@ -600,5 +630,7 @@ We've covered several new functional programming concepts:
 - The role of types as both a correctness tool, and an implementation tool.
 - The use of curried functions to represent functions of multiple arguments.
 - Creating programs from smaller components by composition.
+- Structuring code neatly using `where` expressions.
+- How to avoid null values by using the `Maybe` type.
 
 In the following chapters, we'll build on these ideas as we explore other 
