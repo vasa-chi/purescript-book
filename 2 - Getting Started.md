@@ -4,7 +4,7 @@
 
 In this first chapter, the goal will be to set up a working PureScript development environment, and to write our first PureScript program.
 
-The first program we will write is a simple Hello World application.
+The first code we will write is an example of a library which will use dependencies from NPM and Bower, and which will be built using the Grunt build automation tool. It will provide a single function, to compute the length of the diagonal in a right-angled triangle.
 
 ## Introduction
 
@@ -55,10 +55,10 @@ At this point, you will have all the tools needed to create your first PureScrip
 
 Let's start out simple. We'll use the PureScript compiler `psc` directly to compile a basic Hello World! program. As the chapter progresses, we'll automate more and more of the development process, until we can build our app from scratch including all dependencies with three standard commands.
 
-First of all, create a directory `src` for your source files, and paste the following into a file named `src/Main.purs`:
+First of all, create a directory `src` for your source files, and paste the following into a file named `src/Chapter2.purs`:
 
 ```
-module Main where
+module Chapter2 where
 
 import Debug.Trace
 
@@ -74,13 +74,13 @@ This small sample illustrates a few key ideas:
 Let's build and run this code. Invoke the following command:
 
 ```
-$ psc src/Main.purs
+$ psc src/Chapter2.purs
 ```
 
 If everything worked, then you will see a relatively large amount of Javascript emitted onto the console. Instead, let's redirect the output to a file with the `--output` command line option:
 
 ```
-$ psc src/Main.purs --output dist/Main.js
+$ psc src/Chapter2.purs --output dist/Main.js
 ```
 
 You should now be able to run your code using NodeJS:
@@ -92,10 +92,8 @@ $ node dist/Main.js
 If that worked, NodeJS should execute your code, and correctly print nothing to the console. The reason is that we have not told the PureScript compiler the name of our main module!
 
 ```
-$ psc src/Main.purs --output dist/Main.js --main Main
+$ psc src/Chapter2.purs --output dist/Main.js --main Chapter2
 ```
-
-In fact, if your main module is named `Main`, you can omit the module name, and just specify the `--main` flag.
 
 This time, if you run run your code, you should see the words "Hello, World!" printed to the console.
 
@@ -106,10 +104,10 @@ If you open the `dist/Main.js` file in a text editor, you will see quite a large
 In fact, almost none of this generated code is being used, and we can remove the unused code with another compiler option:
 
 ```
-$ psc src/Main.purs --output dist/Main.js --main Main --module Main
+$ psc src/Chapter2.purs --output dist/Main.js --main Chapter2 --module Chapter2
 ```
 
-I've added the `--module Main` option, which tells `psc` only to include JavaScript which is required by the code defined in the `Main` module. This time, if you open the generated code in a text editor, you should see the following:
+I've added the `--module Chapter2` option, which tells `psc` only to include JavaScript which is required by the code defined in the `Chapter2` module. This time, if you open the generated code in a text editor, you should see the following:
 
 ```
 var PS = PS || {};
@@ -127,7 +125,7 @@ PS.Debug_Trace = (function () {
 })();
 
 var PS = PS || {};
-PS.Main = (function () {
+PS.Chapter2 = (function () {
     "use strict";
     var Debug_Trace = PS.Debug_Trace;
     var main = Debug_Trace.trace("Hello, World!");
@@ -136,7 +134,7 @@ PS.Main = (function () {
     };
 })();
 
-PS.Main.main();
+PS.Chapter2.main();
 ```
 
 If you run this code using NodeJS, you should see the same text printed onto the console.
@@ -166,8 +164,8 @@ module.exports = function(grunt) {
 
     psc: {
       options: {
-        main: "Main",
-        modules: ["Main"]
+        main: "Chapter2",
+        modules: ["Chapter2"]
       },
       all: {
         src: ["src/**/*.purs"],
@@ -231,15 +229,13 @@ $ npm install
 
 ## Tracking Dependencies with Bower
 
-For our phone book application (the goal of this chapter), we will need a data structure to store contact information. To keep things simple for this introductory chapter, we'll use a simple linked list to store our data.
-
-The `purescript-lists` package contains helper functions for working with linked lists that we will find useful, so let's install it. Just like we did with our `npm` dependencies, we could download this package directly on the command line, by typing:
+To write the `diagonal` function (the goal of this chapter), we will need to be able to compute square roots. The `purescript-math` package contains type definitions for functions defined on the JavaScript `Math` object, so let's install it. Just like we did with our `npm` dependencies, we could download this package directly on the command line, by typing:
 
 ```
-$ bower install purescript-lists#0.0.1
+$ bower install purescript-math#0.1.0
 ```
 
-This will install version 0.0.1 of the `purescript-lists` library, along with its dependencies.
+This will install version 0.1.0 of the `purescript-math` library, along with its dependencies.
 
 However, we can set up a `bower.json` file which contains our Bower dependencies, just like we used `npm init` to create `package.json` and control our NPM dependencies.
 
@@ -253,7 +249,7 @@ Just like in the case of NPM, you will be asked a collection of questions, at th
 
 ```
 dependencies: {
-  'purescript-lists': '0.0.1'
+  'purescript-math': '0.1.0'
 }
 ```
 
@@ -269,7 +265,7 @@ Let's update our Grunt script to include dependencies pulled from Bower. Edit `G
 src: ["src/**/*.purs", "bower_components/**/src/**/*.purs"]
 ```
 
-This line includes source files from the `bower_components` directory. If you have a customer Bower configuration, you may have to change this line accordingly.
+This line includes source files from the `bower_components` directory. If you have a custom Bower configuration, you may have to change this line accordingly.
 
 ## NPM or Bower?
 
@@ -283,31 +279,48 @@ The PureScript community has standardised on using Bower for PureScript dependen
 
 Of course, you are free to use any package manager of your choice - the PureScript compiler and tools are not dependent on Bower (or NPM or Grunt, for that matter) in any way.
 
-## Optional: Building CommonJS Modules
+## Computing Diagonals
 
-The PureScript compiler `psc` generates JavaScript code in a single output file, which is suitable for use in a web browser. There is another option for compilation, called `psc-make`, which can generate a separate CommonJS module for every PureScript module which is compiled. This may be preferable if you are targetting a runtime like NodeJS which supports the CommonJS module standard.
+Let's write the `diagonal` function, which will be an example of using a function from an external library.
 
-To invoke `psc-make` on the command line, specify the input files, and a directory in which CommonJS modules should be created with the `--output` option:
+First, import the `Math` module by adding the following line at the top of the `src/Chapter2.purs` file:
 
 ```
-$ psc-make src/Main.purs --output dist/
+import Math
 ```
 
-This will create a subdirectory inside the `dist/` directory for every module provided as an input file. If you are using Bower dependencies, don't forget to include source files in the `bower_components/` directory as well!
+Now define the `diagonal` function, along with its type, as follows:
 
-The `grunt-purescript` plugin also supports compilation using `psc-make`. To use `psc-make` from Grunt: make the following changes in the `Gruntfile.js` file:
+```
+diagonal :: Number -> Number -> Number
+diagonal w h = sqrt (w * w + h * h)
+```
 
-- Change the build target from `psc` to `pscMake`.
-- Change the destination from a single file `dist/Main.js` to a directory: `dest: "dist/"`
-- Change the default task to reference the `pscMake` build target.
+Note that the type here is optional, but we provide it as a good practice, as a form of documentation.
 
-Now, the `grunt` command line tool should create a subdirectory under `dist/` for the `Main` module and every one of its dependencies.
+Let's also modify the `main` function to use the new `diagonal` function:
 
-## Optional: Using the Interactive Mode
+```
+main = print (diagonal 3 4)
+```
 
-This section is optional, but recommended.
+Now compile the module again, using Grunt:
 
-The PureScript compiler also ships with an interactive REPL called `psci`. This can be very useful for testing your code, and experimenting with new ideas.
+```
+$ grunt
+```
+
+If you run the generated code again, you should see that your code has been invoked successfully:
+
+```
+$ node dist/Main.js 
+
+5
+```
+
+## Testing Code Using the Interactive Mode
+
+The PureScript compiler also ships with an interactive REPL called `psci`. This can be very useful for testing your code, and experimenting with new ideas. Let's use `psci` to test the `diagonal` function.
 
 The `grunt-purescript` plugin can be configured to generate a `psci` configuration for your source files. This saves you the trouble of having to load your modules into `psci` manually.
 
@@ -368,6 +381,14 @@ Try evaluating a few expressions now (expressions are terminated with Ctrl+D):
 "Hello, World!"
 ```
 
+Let's try out our `diagonal` function from `psci`:
+
+```
+> Main.diagonal 8 12
+
+13
+```
+
 You can also use `psci` to define functions:
 
 ```
@@ -390,6 +411,26 @@ Prim.Boolean
 ```
 
 Try out the interactive mode now. If you get stuck at any point, simply use the Reset command `:r` to unload any modules which may be compiled in memory.
+
+## Optional: Building CommonJS Modules
+
+The PureScript compiler `psc` generates JavaScript code in a single output file, which is suitable for use in a web browser. There is another option for compilation, called `psc-make`, which can generate a separate CommonJS module for every PureScript module which is compiled. This may be preferable if you are targetting a runtime like NodeJS which supports the CommonJS module standard.
+
+To invoke `psc-make` on the command line, specify the input files, and a directory in which CommonJS modules should be created with the `--output` option:
+
+```
+$ psc-make src/Chapter2.purs --output dist/
+```
+
+This will create a subdirectory inside the `dist/` directory for every module provided as an input file. If you are using Bower dependencies, don't forget to include source files in the `bower_components/` directory as well!
+
+The `grunt-purescript` plugin also supports compilation using `psc-make`. To use `psc-make` from Grunt: make the following changes in the `Gruntfile.js` file:
+
+- Change the build target from `psc` to `pscMake`.
+- Change the destination from a single file `dist/Main.js` to a directory: `dest: "dist/"`
+- Change the default task to reference the `pscMake` build target.
+
+Now, the `grunt` command line tool should create a subdirectory under `dist/` for the `Chapter2` module and every one of its dependencies.
 
 ## Using Grunt Project Templates
 
@@ -431,6 +472,15 @@ The final command will build the source files, and run the test suite.
 
 You can use this project template as the basis of a more complicated project.
 
+## Exercises
+
+1. (Easy) Use the `Math.pi` constant to write a function `circleArea` which computes the area of a circle with a given radius. Test your function using `psci`.
+1. (Medium) Add a Grunt task to the `Gruntfile.js` file to execute the compiled code using NodeJS, so that instead of typing `node dist/Main.js`, the user can simply type `grunt run`. _Hint_: Consider using the `grunt-execute` Grunt plugin. 
+
 ## Conclusion 
 
-_TODO_
+In this chapter, we set up a development environment from scratch, using standard tools from the JavaScript ecosystem: NPM, Bower and Grunt.
+
+We also wrote our first PureScript function, and a JavaScript program which could be compiled and executed using NodeJS.
+
+We will use this development setup in the following chapters to compile, debug and test our code, so you should make sure that you are comfortable with the tools and techniques involved.
