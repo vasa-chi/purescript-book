@@ -15,7 +15,7 @@ Here are the tools we will be using to set up our PureScript development environ
 - `bower` ([http://bower.io/](bower.io)) - A package manager which is used to version various PureScript packages which we will need.
 - `grunt` ([http://gruntjs.com/](gruntjs.com)) - An automation tool which we will use to build our PureScript code.
 
-The first half of the chapter will guide you through installing and configuring these tools. In the second half, we will work on writing some actual code.
+The rest of the chapter will guide you through installing and configuring these tools.
 
 ## Installing PureScript
 
