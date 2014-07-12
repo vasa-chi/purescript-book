@@ -183,8 +183,126 @@ dup [] = []
 1. (Easy) Write a function which uses record patterns to find a person's city. A Person should be represented as a record which contains an `address` field of type `Address`, and `Address` should contain the `city` field.
 1. (Medium) Write a function `flatten` which uses only patterns and the concatenation (`++`) operator to flatten an array of arrays into a singly-nested array. _Hint_: the function should have type `forall a. [[a]] -> [a]`.
 
+## Case Expressions
+
+Patterns do not only appear in top-level function declarations. It is possible to use patterns to match on an intermediate value in a computation, using a `case` expression. Case expressions provide a similar type of utility to anonymous functions: it is not always desirable to give a name to a function, and a `case` expression allows us to avoid naming a function just because we want to use a pattern.
+
+Here is an example. This function computes longest suffix of an array which sums to zero.
+
+```
+firstZeroSum :: [Number] -> [Number]
+firstZeroSum [] = []
+firstZeroSum xs@(_ : t) = case sum xs of
+  0 -> xs
+  _ -> firstPositiveSum t
+```
+
+This function works by case analysis. If the array is empty, our only option is to return an empty array. If the array is non-empty, we first use a `case` expression to split into two cases. If the sum of the array is zero, we return the whole array. If not, we recurse on the tail of the array.
+
 ## Algebraic Data Types
 
-## Case Statements
+This section will introduce a feature of the PureScript type system called Algebraic Data Types (or ADTs), which are fundamentally linked with pattern matching.
+
+However, we'll first consider a motivating example, which will provide the basis of a solution to this chapter's goal - to implement a simple vector graphics library.
+
+Suppose we wanted to define a type to represent some simple shape types: lines, rectangles, circles, text, etc. In an object oriented language, we would probably define an interface or abstract class `Shape`, and one concrete subclass for each type of shape that we wanted to be able to work with.
+
+However, this approach has one major drawback: to work with `Shape`s abstractly, it is necessary to identify all of the operations one might wish to perform, and to define them on the `Shape` interface. It becomes difficult to add new operations without breaking modularity. 
+
+On the other hand, if we know the set of shape types that we want to support in advance, we can create a single `Shape` record which contains a `shapeType` field, as well as properties required by every one of the individual shape types, in the style of C unions. However, this approach has its own problem: it is not a faithful representation of a `Shape`. Every line contains properties only required for circles, and vice versa. Even if the fields were made optional using a nullable type, there would be no way for the compiler to check that the correct fields had been provided. This representation is unsafe.
+
+Algebraic data types provide the best of both of these solutions: it is possible to define new operations on `Shape` in a modular way, and still maintain type-safety.
+
+Here is how `Shape` might be represented as an algebraic data type:
+
+```
+data Shape
+  = Circle Point Number
+  | Rectangle Point Number Number
+  | Line Point Point
+  | Text Point String
+```
+
+The `Point` type might also be defined as an algebraic data type, as follows:
+
+```
+data Point = Point
+  { x :: Number
+  , y :: Number
+  }
+```
+
+The `Point` data type illustrates some interesting points:
+
+- The data carried by an ADT's constructors doesn't have to be restricted to primitive types: constructors can include records, arrays, or even other ADTs. 
+- Even though ADTs are useful for describing data with multiple constructors, they can also be useful when there is only a single constructor.
+- The constructors of an algebraic data type might have the same name as the ADT itself. This is quite common, and it is important not to confuse the `Point` _type constructor_ with the `Point` _data constructor_ - they live in different namespaces.
+
+This declaration defines `Shape` as a sum of different constructors, and for each constructor identifies the data that is included. A `Shape` is either a `Circle` which contains a center `Point` and a radius (a number), or a `Rectangle`, or a `Line`, or `Text`. There are no other ways to construct a value of type `Shape`.
+
+An algebraic data type is always introduced using the `data` keyword, followed by the name of the new type and any type arguments. The type's constructors are defined after the equals symbol, and are separated by pipe characters (`|`).
+
+Let's see another example from PureScript's standard libraries. We saw the `Maybe` type, which is used to to define optional values, earlier in the book. Here is it's definition from the `purescript-maybe` oackage:
+
+```
+data Maybe a = Nothing | Just a
+```
+
+This example demonstrates the use of a type parameter `a`. Its definition almost reads like English: "a value of type `Maybe a` is either `Nothing`, or `Just` a value of type `a`".
+
+Data constructors can also be used to define recursive data structures. Here is one more example, defining a data type of singly-linked lists of elements of type `a`:
+
+```
+data List a = Nil | Cons a (List a)
+```
+
+This example is taken from the `purescript-lists` package. Here, the `Nil` constructor represents an empty list, and `Cons` is used to create non-empty lists from a head element and a tail. Notice how the tail is defined using the data type `List a`, making this a recursive data type.
+
+## Using ADTs
+
+It is simple enough to use the constructors of an algebraic data type to construct a value: simply apply them like functions, providing arguments corresponding to the data included with the appropriate constructor.
+
+For example, the `Line` constructor defined above required two `Point`s, so to construct a `Shape` using the `Line` constructor, we have to provide two arguments of type `Point`:
+
+```
+exampleLine :: Shape
+exampleLine = Line origin origin
+  where
+  origin :: Point
+  origin = Point { x: 0, y: 0 }
+```
+
+To construct the `origin`, we apply the `Point` constructor to its single argument, which is a record.
+
+So, constructing values of algebraic data types is simple, but how do we use them? This is where the important connection with pattern matching appears: the only way to consume a value of an algebraic data type is to use pattern matching to match its constructor.
+
+Let's see an example. Suppose we want to convert a `Shape` into a string. We have to use pattern matching to discover which constructor was used to construct the `Shape`. We do so as follows:
+
+```
+showPoint :: Point -> String
+showPoint (Point { x = x, y = y }) =
+  "(" ++ show x ++ ", " ++ show y ++ ")"
+
+showShape :: Shape -> String
+showShape (Circle c r) =
+  "Circle [center: " ++ showPoint c ++ ", radius: " ++ show r ++ "]"
+showShape (Rectangle c w h) =
+  "Rectangle [center: " ++ showPoint c ++ ", width: " ++ show w ++ ", height: " ++ show h ++ "]"
+showShape (Line start end) =
+  "Line [start: " ++ showPoint start ++ ", end: " ++ showPoint end ++ "]"
+showShape (Circle loc text) =
+  "Text [location: " ++ showPoint loc ++ ", text: " ++ show text ++ "]"
+```
+
+Each constructor can be used as a pattern, and the arguments to the constructor can themselves be bound using patterns of their own. Consider the first alternative of `showShape`: if the `Shape` matches the `Circle` constructor, then we bring the arguments of `Circle` (center and radius) into scope using two variable patterns, `c` and `r`. The other cases are similar.
+
+`showPoint` is another example of pattern matching. In this case, there is only a single alternative, but we use a nested pattern to match the fields of the record contained inside the `Point` constructor.
+
+## Exercises
+
+1. (Easy) Construct a value of type `Shape` which represents a circle centered at the origin with radius 10.
+1. (Medium) Write a function which extracts the text from a `Shape`. It should return `Maybe String`, and use the `Nothing` constructor if the input is not constructed using `Text`.
+
+## A Library for Vector Graphics
 
 ## Conclusion
