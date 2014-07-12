@@ -99,6 +99,8 @@ Commands which should be typed at the `psci` interactive mode prompt will be pre
 
 Each chapter will contain exercises, labelled with their difficulty level. It is strongly recommended that you attempt the exercises in each chapter to fully understand the material.
 
+This book aims to provide an introduction to the PureScript language for beginners, but it is not the sort of book that provides a list of recipes for solving problems. For beginners, this book should be a fun challenge, and you will get the most benefit if you read the material, attempt the exercises, and most importantly of all, try to write some code of your own. 
+
 ## Getting Help
 
 If you get stuck at any point, there are a number of resources available online for learning PureScript:
@@ -107,6 +109,8 @@ If you get stuck at any point, there are a number of resources available online 
 - The PureScript website ([http://purescript.org](http://purescript.org)) contains blog posts written by the PureScript developers, as well as links to videos and other resources for beginners.
 - The PureScript compiler documentation ([http://docs.purescript.org](http://docs.purescript.org)) contains simple code examples for the major features of the language.
 - Try PureScript! is a website which allows users to compile PureScript code in the web browser, and contains several simple examples of code.
+
+If you prefer to learn by reading examples, the `purescript` and `purescript-contrib` GitHub organisations contain plenty of examples of PureScript code.
 
 ## About the Author
 
