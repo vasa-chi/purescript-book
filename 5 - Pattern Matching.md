@@ -31,8 +31,7 @@ Let's begin by looking at an example. Here is a function which computes the grea
 gcd :: Number -> Number -> Number
 gcd n 0 = n
 gcd 0 n = n
-gcd n m | n > m = gcd (n - m) m
-gcd n m         = gcd n       (m - n)
+gcd n m = if n > m then gcd (n - m) m else gcd n (m - n)
 ```
 
 This algorithm is called the Euclidean Algorithm. If you search for its definition online, you will likely find a set of mathematical equations which look a lot like the code above. This is one benefit of pattern matching: it allows you to define code by cases, writing simple, declarative code which looks like a specification of a mathematical function.
@@ -43,7 +42,45 @@ For example, the first line states that if the second argument is zero, then the
 
 Note that patterns can bind values to names - each line in the example binds one or both of the names `n` and `m` to the input values. As we learn about different kinds of patterns, we will see that different types of patterns correspond to different ways to choose names from the input arguments.
 
-The third line contains another type of condition: the expression on the right of the pipe is called a _guard_. It is a boolean-valued expression which must be satisfied in addition to the constraints imposed by the patterns. In this case, the extra condition imposed is that the first argument is strictly larger than the second.
+The example code above demonstrates two types of patterns:
+
+- Numeric literals patterns, which match something of type `Number`, only if the value matches exactly.
+- Variable patterns, which bind their argument to a name
+
+There are other types of simple patterns:
+
+- String and Boolean literals
+- Wildcard patterns, indicated with an underscore (`_`), which match any argument, and which do not bind any names.
+
+Here are two more examples which demonstrate using these simple patterns:
+
+```
+fromString :: String -> Boolean
+fromString "true" = true
+fromString _      = false
+
+toString :: Boolean -> String
+toString true  = "true"
+toString false = "false"
+```
+
+## Guards
+
+In the Euclidean algorithm example, we used an `if .. then .. else` expression to switch between the two alternatives when `m > n` and `m <= n`. Another option in this case would be to use a _guard_.
+
+A guard is a boolean-valued expression which must be satisfied in addition to the constraints imposed by the patterns. Here is the Euclidean algorithm rewritten to use a guard:
+
+```
+gcd :: Number -> Number -> Number
+gcd n 0 = n
+gcd 0 n = n
+gcd n m | n > m = gcd (n - m) m 
+gcd n m         = gcd n (m - n)
+```
+
+In this case, the third line uses a guard to impose the extra condition that the first argument is strictly larger than the second.
+
+As this example demonstrates, guard appear on the left of the equals symbol, separated from the list of patterns by a pipe character (`|`).
 
 ## Exercises
 
@@ -52,8 +89,64 @@ The third line contains another type of condition: the expression on the right o
 
 ## Matching Arrays
 
-## Matching Objects
+Let's look at ways in which we can match arrays using patterns. There are two types of array pattern: array literal patterns, and cons patterns.
+
+### Array Literal Patterns
+
+Array literal patterns provide a way to match arrays of a fixed length. For example, suppose we want to write a function which treats empty arrays in a special way:
+
+```
+isEmpty :: forall a. [a] -> Boolean
+isEmpty [] = true
+isEmpty _ = false
+```
+
+Or another function which treats arrays of length five as special, binding each of its five elements in a different way:
+
+```
+takeFive :: [Number] -> Number
+takeFive [0, 1, a, b, _] = a * b
+takeFive = 0
+```
+
+The first pattern only matches arrays with five elements, whose first and second elements are 0 and 1 respectively. In that case, the function returns the produce of the third and fourth elements.
+
+### Cons Patterns
+
+Cons patterns match arrays whose length is at least one. They provide a way to separate the first element (or head) of an array, and the rest (or tail) of the array.
+
+For example, here is a function which sums the squares in an array of numbers:
+
+```
+sumOfSquares :: [Number] -> Number
+sumOfSquares [] = 0
+sumOfSquares (n : ns) = n * n + sumOfSquares ns
+```
+
+This function works by separating the input into two cases: empty and non-empty arrays. If the array is empty, then the sum of squares is zero. If not, then we separate the head and tail of the array using a cons pattern, square the head element, and add it to the sum of squares of the tail.
+
+As this example shows, cons patterns are introduced by separating two patterns with a colon: the pattern on the left of the colon matches the array head, and the pattern on the right matches the array tail.
+
+Here is another example. This function finds the sum of all products of adjacent pairs in a list of numbers:
+
+```
+sumOfProducts :: [Number] -> Number
+sumOfProducts [] = 0
+sumOfProducts [_] = 0
+sumOfProducts (n : m : ns) = n * m + sumOfProducts (m : ns)
+```
+
+This function splits the input into three cases: zero elements, one element, and two or more elements. In the last case, we multiply the first two elements, and recurse on the tail.
+
+## Exercises
+
+1. (Easy) Write a function `allTrue` which determines if all elements of an array of Boolean values are equal to `true`.
+2. (Medium) Write a function `flatten` which uses only patterns and the concatenation (`++`) operator to flatten an array of arrays into a singly-nested array. _Hint_: the function should have type `forall a. [[a]] -> [a]`.
+
+## Matching Records
 
 ## Algebraic Data Types
+
+## Case Statements
 
 ## Conclusion
