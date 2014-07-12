@@ -141,9 +141,47 @@ This function splits the input into three cases: zero elements, one element, and
 ## Exercises
 
 1. (Easy) Write a function `allTrue` which determines if all elements of an array of Boolean values are equal to `true`.
-2. (Medium) Write a function `flatten` which uses only patterns and the concatenation (`++`) operator to flatten an array of arrays into a singly-nested array. _Hint_: the function should have type `forall a. [[a]] -> [a]`.
+2. (Medium) Write a function which replaces the first two elements of an array of Numbers with their sum.
 
 ## Matching Records
+
+Just as array literal patterns and cons patterns exist to deconstruct arrays, PureScript provides record patterns to deconstruct record values.
+
+Record patterns look like record literals, but instead of colons to separate labels from expressions, record patterns use equals symbols to separate labels from patterns. For example: this pattern matches any record which contains fields called `name` and `age`, and binds their values to the names `x` and `y` respectively:
+
+```
+showPerson :: { name :: String, age :: Number } -> String
+showPerson { name = x, age = y } = x ++ " (age " ++ show y ++ ")"
+```
+
+## Nested Patterns
+
+Array patterns and record patterns both combine smaller patterns to build larger patterns. For the most part, the examples above have only used simple patterns inside array patterns and record patterns, but it is important to note that patterns can be arbitrarily nested, which allows functions to be defined using conditions on potentially complex data types.
+
+For example, this code combines record and array patterns to match an array of records:
+
+```
+type Person = { height :: Number }
+
+totalHeight :: [Person] -> Number
+totalHeight [] = 0
+totalHeight ({ height = h } : ps) = h + totalHeight ps
+```
+
+## Named Patterns
+
+Patterns can be named to bring additional names into scope when using nested patterns. Any pattern can be named by using the `@` symbol. For example, the following code matches any array with one or more elements, but in addition to binding the head of the array to a name, the value of the array itself is bound to the name `arr`:
+
+```
+dup :: forall a. [a] -> [a]
+dup arr@(x : _) = x : arr
+dup [] = []
+```
+
+## Exercises
+
+1. (Easy) Write a function which uses record patterns to find a person's city. A Person should be represented as a record which contains an `address` field of type `Address`, and `Address` should contain the `city` field.
+1. (Medium) Write a function `flatten` which uses only patterns and the concatenation (`++`) operator to flatten an array of arrays into a singly-nested array. _Hint_: the function should have type `forall a. [[a]] -> [a]`.
 
 ## Algebraic Data Types
 
