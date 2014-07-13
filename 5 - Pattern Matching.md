@@ -36,7 +36,7 @@ gcd n m = if n > m then gcd (n - m) m else gcd n (m - n)
 
 This algorithm is called the Euclidean Algorithm. If you search for its definition online, you will likely find a set of mathematical equations which look a lot like the code above. This is one benefit of pattern matching: it allows you to define code by cases, writing simple, declarative code which looks like a specification of a mathematical function.
 
-A function written using pattern matching works by pairing sets of conditions with their results. The expressions on the left of the equals sign are called patterns, and describe which conditions the arguments must satisfy before the alternative on the right of the equals sign should be evaluated and returned.
+A function written using pattern matching works by pairing sets of conditions with their results. The expressions on the left of the equals sign are called patterns, and describe which conditions the arguments must satisfy before the alternative on the right of the equals sign should be evaluated and returned. Each alternative is tried in order, and the first alternative whose patterns match their inputs determines the return value.
 
 For example, the first line states that if the second argument is zero, then the result is just the value of the first argument.
 
@@ -199,6 +199,39 @@ firstZeroSum xs@(_ : t) = case sum xs of
 
 This function works by case analysis. If the array is empty, our only option is to return an empty array. If the array is non-empty, we first use a `case` expression to split into two cases. If the sum of the array is zero, we return the whole array. If not, we recurse on the tail of the array.
 
+## Pattern Match Failures
+
+If patterns in a case expression are tried in order then what happens in the case when none of the patterns in a case alternatives match their inputs? In this case, the case expression will fail at runtime with a _pattern match failure_.
+
+We can see this behaviour with a simple example:
+
+```
+patternFailure :: Number -> Number
+patternFailure 0 = 0
+```
+
+This function contains only a single alternative, which only matches a single input, zero. If we compile this file, and test in `psci` with any other argument, we will see an error at runtime:
+
+```
+$ psci
+
+> patternFailure 10
+
+Failed pattern match
+```
+
+Functions which return a value for any combination of inputs are called _total_ functions, and functions which do not are called _partial_.
+
+It is generally considered better to define total functions where possible. If it is known that a function does not return a result for some valid set of inputs, it is usually better to return a value with type `Maybe a` for some `a`, using `Nothing` to indicate failure. This way, the presence or absence of a value can be indicated in a type-safe way.
+
+Here is the `patternFailure` function, rewritten to use `Maybe Number` as the return type:
+
+```
+patternFailure :: Number -> Maybe Number
+patternFailure 0 = Just 0
+patternFailure _ = Nothing
+```
+
 ## Algebraic Data Types
 
 This section will introduce a feature of the PureScript type system called Algebraic Data Types (or ADTs), which are fundamentally linked with pattern matching.
@@ -305,4 +338,79 @@ Each constructor can be used as a pattern, and the arguments to the constructor 
 
 ## A Library for Vector Graphics
 
+Let's use the data types we have defined above to create a simple library for using vector graphics.
+
+Define a type synonym for a `Picture` - just an array of `Shape`s:
+
+```
+type Picture = [Shape]
+```
+
+For debugging purposes, we'll want to be able to render a `Picture` as a string. The following function, defined using pattern matching, lets us do that:
+
+```
+showPicture :: Picture -> String
+showPicture picture = "[" ++ go picture ++ "]"
+  where
+  go :: Picture -> String
+  go [] = ""
+  go [x] = showShape x
+  go (x : xs) = showShape x ++ ", " ++ go xs
+``` 
+
+Notice how the recursion is handled using a helper function defined in a `where` block. The function `go` is not accessible to users of the module, only inside the function `showPicture`.
+
+`go` handles three cases: empty arrays, singleton arrays, and anything else. This approach avoids printing an extra comma character at the end of the string.
+
+Let's try it out. Compile your module with `grunt` and open `psci`:
+
+```
+$ grunt
+$ psci
+
+> :i Data.Picture
+
+> showPicture [Line (Point { x: 0, y: 0 }) (Point { x: 1, y: 1 })]
+
+"[Line [start: (0, 0), end: (1, 1)]]"
+```
+
+The example code for this module contains a function `bounds` which computes the smallest bounding rectangle for a `Picture`.
+
+The `Bounds` data type defines a bounding rectangle. It is also defined as a algebraic data type with a single constructor:
+
+```
+data Bounds = Bounds
+  { top    :: Number
+  , left   :: Number
+  , bottom :: Number
+  , right  :: Number
+  }
+```
+
+`bounds` uses the `foldl` function from `Data.Foldable` to traverse the array of `Shapes` in a `Picture`, and accumulate the smallest bounding rectangle:
+
+```
+bounds :: Picture -> Bounds
+bounds = foldl combine emptyBounds
+  where
+  combine :: Bounds -> Shape -> Bounds
+  combine b shape = shapeBounds shape \/ b
+```
+
+In the base case, we need to find the smallest bounding rectangle of an empty `Picture`, and the empty bounding rectangle defined by `emptyBounds` suffices.
+
+The accumulating function `combine` is defined in a `where` block. `combine` takes a bounding rectangle computed from `foldl`'s recursive call, and the next `Shape` in the array, and uses a user-defined operator `\/` to compute the union of the two bounding rectangles. The `shapeBounds` function computes the bounds of a single shape using pattern matching.
+
+## Exercises
+
+1. (Medium) Extend the vector graphics library with a new operation `area` which computes the area of a `Shape`. For the purposes of this exercise, the area of a piece of text is assumed to be zero.
+1. (Difficult) Extend the `Shape` type with a new data constructor `Clipped`, which clips another `Picture` to a rectangle. Extend the `shapeBounds` function to compute the bounds of a clipped picture. Note that this makes `Shape` into a recursive data type.
+
 ## Conclusion
+
+In this chapter, we covered pattern matching, a basic but powerful technique from functional programming. We saw how to use simple patterns as well as array and record patterns to match parts of deep data structures.
+
+Finally, we introduced algebraic data types, a new type which is defined intrinsically in terms of pattern matching. We saw how algebraic data types allow concise descriptions of data structures, and provide a modular way to extend data types with new operations,
+
+In the rest of the book, we will use ADTs and pattern matching extensively, so it will pay dividends to become familiar with them now. Try creating your own algebraic data types and writing functions to consume them using pattern matching.
