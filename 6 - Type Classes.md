@@ -97,8 +97,60 @@ We can annotate the expression with a type, using the `::` operator, so that `ps
 "Left (10)"
 ```
 
+Some types do not have a `Show` instance defined at all. One example of this is the function type `->`. If we try to `show` a function from `Number` to `Number`, we get an appropriate error message from the type checker:
+
+```
+> show $ \n -> n + 1
+  
+Error in declaration it
+No instance found for Prelude.Show (Prim.Number -> Prim.Number)
+```
+
 ## Exercises
 
 1. (Easy) Use the `showShape` function from the previous chapter to define a `Show` instance for the `Shape` type.
+
+## Common Type Classes
+
+In this section, we'll look at some standard type classes defined in the Prelude and standard libraries. These type classes form the basis of many common patterns of abstraction in idiomatic PureScript code, so a basic understanding of their functions is highly recommended.
+
+### Eq
+
+The `Eq` type class defines the equality (`==`) and inequality (`/=`) operators.
+
+```
+class Eq a where
+  (==) :: a -> a -> Boolean
+  (/=) :: a -> a -> Boolean
+```
+
+### Ord
+
+
+### Num
+
+
+### Bits
+
+### BoolLike
+
+### Semigroup
+
+### Functor
+
+## Exercises
+
+1. (Easy) The following algebraic data type represents a complex number:
+
+        data Complex = Complex 
+          { real :: Number
+          , imaginary :: Number 
+          }
+          
+  Define `Show` and `Eq` instances for `Complex`.
+
+## Instance Dependencies
+
+## 
 
 ## Conclusion
