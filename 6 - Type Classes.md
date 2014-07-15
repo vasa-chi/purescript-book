@@ -124,19 +124,106 @@ class Eq a where
   (/=) :: a -> a -> Boolean
 ```
 
+Note that in either case, the two arguments must have the same type: it does not make sense to compare two values of different types for equality.
+
+Try out the `Eq` type class in `psci`:
+
+```
+> 1 == 2
+false
+
+> "Test" == "Test"
+true
+```
+
 ### Ord
 
+The `Ord` type class defines the `compare` function, which can be used to compare two values, for types which support ordering. The comparison operators `<` and `>` along with their non-strict companions `<=` and `>=`, can be defined in terms of `compare`.
 
-### Num
+```
+data Ordering = LT | EQ | GT
+
+class (Eq a) <= Ord a where
+  compare :: a -> a -> Ordering
+```
+
+The `compare` function compares two values, and returns an `Ordering`, which has three alternatives:
+
+- `LT` - if the first argument is less than the second.
+- `EQ` - if the first argument is equal to (or incomparable with) the second.
+- `GT` - if the first argument is greater than the second.
+
+Again, we can try out the `compare` function in `psci`:
+
+Try out the `Eq` type class in `psci`:
+
+```
+> compare 1 2
+LT
+
+> compare "A" "Z"
+LT
+```
+
+### Num, Bits and BoolLike
+
+The `Num`, `Bits` and `BoolLike` type classes identifies those types which support numeric, bitwise and boolean operators respectively. They are provided to abstract over those operators, so that they can be reused where appropriate.
+
+_Note_: Just like the `Eq` and `Ord` type classes, the `Num`, `Bits` and `BoolLike` type classes have special support in the PureScript compiler, so that simple expressions such as `1 + 2 * 3` get translated into simple JavaScript, as opposed to function calls which dispatch based on a type class implementation.
+```
+class Num a where
+  (+) :: a -> a -> a
+  (-) :: a -> a -> a
+  (*) :: a -> a -> a
+  (/) :: a -> a -> a
+  (%) :: a -> a -> a
+  negate :: a -> a
+  
+class Bits b where
+  (&) :: b -> b -> b
+  (|) :: b -> b -> b
+  (^) :: b -> b -> b
+  shl :: b -> Prim.Number -> b
+  shr :: b -> Prim.Number -> b
+  zshr :: b -> Prim.Number -> b
+  complement :: b -> b
+
+class BoolLike b where
+  (&&) :: b -> b -> b
+  (||) :: b -> b -> b
+  not :: b -> b
+```
+
+### Semigroups and Monoids
+
+The `Semigroup` type class identifies those types which support a "concatenation operator" `<>`:
+
+```
+class Semigroup a where
+  (<>) :: a -> a -> a
+```
+
+In the Prelude, a `Semigroup` instance is provided for the String type, which corresponds to ordinary string concatenation, but several other standard instances are provided by the `purescript-monoid` and `purescript-arrays` packages.
+
+The `++` concatenation operator, which we have already seen, is provided as an alias for `<>`.
+
+The `Monoid` type class (provided by the `purescript-monoid` package) extends the `Semigroup` type class with the concept of an empty value, called `mempty`:
+
+```
+class (Semigroup m) <= Monoid m where
+  mempty :: m
+```
+
+A `Monoid` type class instance for a type describes how to _accumulate_ a result with that type, by starting with an "empty" value, and combining new results.
+
+The `purescript-monoid` package provides many examples of monoids and semigroups, which we will see throughout the rest of the book.
+
+### Foldable
+
+### Functor, Apply, Applicative, Bind, Monad
 
 
-### Bits
 
-### BoolLike
-
-### Semigroup
-
-### Functor
 
 ## Exercises
 
@@ -148,9 +235,19 @@ class Eq a where
           }
           
   Define `Show` and `Eq` instances for `Complex`.
+  
+## Uniqueness of Instances
 
 ## Instance Dependencies
 
-## 
+## Multi Parameter Type Classes
+
+## Nullary Type Classes
+
+## Superclasses
+
+## Type Annotations
+
+## A Type Class for Hashes
 
 ## Conclusion
