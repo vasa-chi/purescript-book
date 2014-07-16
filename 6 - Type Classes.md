@@ -167,9 +167,10 @@ LT
 
 ### Num, Bits and BoolLike
 
-The `Num`, `Bits` and `BoolLike` type classes identifies those types which support numeric, bitwise and boolean operators respectively. They are provided to abstract over those operators, so that they can be reused where appropriate.
+The `Num` type class identifies those types which support numeric operators such as addition, subtraction, multiplication and division. It is provided to abstract over those operators, so that they can be reused where appropriate.
 
-_Note_: Just like the `Eq` and `Ord` type classes, the `Num`, `Bits` and `BoolLike` type classes have special support in the PureScript compiler, so that simple expressions such as `1 + 2 * 3` get translated into simple JavaScript, as opposed to function calls which dispatch based on a type class implementation.
+_Note_: Just like the `Eq` and `Ord` type classes, the `Num` type class has special support in the PureScript compiler, so that simple expressions such as `1 + 2 * 3` get translated into simple JavaScript, as opposed to function calls which dispatch based on a type class implementation.
+
 ```
 class Num a where
   (+) :: a -> a -> a
@@ -178,20 +179,6 @@ class Num a where
   (/) :: a -> a -> a
   (%) :: a -> a -> a
   negate :: a -> a
-  
-class Bits b where
-  (&) :: b -> b -> b
-  (|) :: b -> b -> b
-  (^) :: b -> b -> b
-  shl :: b -> Prim.Number -> b
-  shr :: b -> Prim.Number -> b
-  zshr :: b -> Prim.Number -> b
-  complement :: b -> b
-
-class BoolLike b where
-  (&&) :: b -> b -> b
-  (||) :: b -> b -> b
-  not :: b -> b
 ```
 
 ### Semigroups and Monoids
