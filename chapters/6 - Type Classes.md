@@ -237,6 +237,46 @@ Here, we choose the String monoid, which concatenates strings together, and the 
 
 But arrays are not the only types which are foldable. `purescript-foldable-traversable` also defines `Foldable` instances for types like `Maybe` and `Tuple`, and other libraries like `purescript-lists` define `Foldable` instances for their own data types. `Foldable` abstracts the concept of an ordered container.
 
+## Functor, and Type Class Laws
+
+The Prelude also defines a collection of type classes which are enable a functional style of programming with side-effects in PureScript: `Functor`, `Applicative` and `Monad`. We will cover these abstractions later in the book, but for now, let's look at the definition of the `Functor` type class, which we have seen already in the form of the lifting operator `<$>`:
+
+```
+class Functor f where
+  (<$>) :: forall a b. (a -> b) -> f a -> f b
+```
+
+The operator `<$>` allows a function to be "lifted" over a data structure. The precise definition of the word "lifted" here depends on the data structure in question, but we have already seen its behavior for some simple types:
+
+```
+> :i Data.Array
+> (\n -> n < 3) <$> [1, 2, 3, 4, 5]
+  
+[true, true, false, false, false]
+
+> :i Data.Maybe
+> Data.String.length <$> Just "testing"
+  
+Just (7)
+```
+
+How can we understand the meaning of the `<$>` operator, when it acts on many different structures, each in a different way?
+
+Well, we can build an intuition that the `<$>` operator applies the function it is given to each element of a container, and builds a new container from the results, with the same shape as the original. But how do we make this concept precise?
+
+Type class instances for `Functor` are expected to adhere to a set of _laws_, called the _Functor laws_:
+
+- `id <$> xs = xs`
+- `g <$> (f <$> xs) = (g <<< f) <$> xs`
+
+The first law states that lifting the identity function over a structure just returns the original structure. This makes sense since the identity function does not modify its input.
+
+The second law states that mapping one function over a structure, and then mapping a second, is the same thing as mapping the composition of the two functions over the structure.
+
+Whatever "lifting" means in the general sense, it should be true that any reasonable definition of lifting a function over a data structure should obey these rules. 
+
+Many standard type classes come with their own set of similar laws. The laws given to a type class give structure to the functions of that type class and allow us to study its instances in generality. The interested reader can research the laws ascribed to the standard type classes that we have seen already.
+
 ## Exercises
 
 1. (Easy) The following algebraic data type represents a complex number:
@@ -252,6 +292,7 @@ But arrays are not the only types which are foldable. `purescript-foldable-trave
         data NonEmpty a = NonEmpty a [a]
         
   Write a `Semigroup` instance for non-empty arrays by reusing the `Semigroup` instance for `[]`.
+1. (Medium) Write a `Functor` instance for `NonEmpty`.
 1. (Difficult) Write a `Foldable` instance for `NonEmpty`.
 
 ## Type Annotations
@@ -331,6 +372,25 @@ If it is truly the case that there are two valid type class instances for a type
 
 ## Instance Dependencies
 
+Just as the implementation of functions can depend on type class instances using constrained types, so can the implementation of type class instances depend on other type class instances. This provides a powerful form of program inference, in which the implementation of a program can be inferred using its types.
+
+For example, consider the `Show` type class. We can write a type class instance to `show` arrays of elements, as long as we have a way to `show` the elements themselves:
+
+```
+instance showArray :: (Show a) => Show [a] where
+  show xs = "[" ++ go xs ++ "]"
+    where
+    go [] = ""
+    go [x] = show x
+    go (x : xs) = show x ++ ", " ++ go xs
+```
+
+There is an optimized version of this code included in the PureScript Prelude.
+
+Note that the function `show` is used with various types of input. We are defining `show` to work with inputs of type `[a]`, i.e. arrays of elements of type `a`. However, in the `go` function, we bring the head element of the input into scope with the name `x`, and call `show x`. Here, `show` is applied to an _element_ of type `a`.
+
+When the program is compiled, the correct type class instance for `Show` is chosen based on the inferred type of the argument to `show`, but this complexity is not exposed to the developer.
+
 ## Exercises
 
 1. (Easy) Write an `Eq` instance for the type `NonEmpty a` which reuses the instances for `Eq a` and `Eq [a]`.
@@ -339,6 +399,14 @@ If it is truly the case that there are two valid type class instances for a type
         data Extended a = Finite a | Infinite
         
   Write an `Ord` instance for `Extended a` which reuses the `Ord` instance for `a`.
+1. (Difficult) Given an type constructor `f` which defines an ordered container (and so has a `Foldable` instance), we can create a new container type which includes an extra element at the front:
+
+        data OneMore f a = OneMore a (f a)
+        
+  The container `OneMore f` is also has an ordering, where the new element comes before any element of `f`. Write a `Foldable` instance for `OneMore f`:
+  
+        instance foldableOneMore :: (Foldable f) => Foldable (OneMore f) where
+          ...
 
 ## Multi Parameter Type Classes
 
