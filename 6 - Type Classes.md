@@ -207,10 +207,35 @@ The `purescript-monoid` package provides many examples of monoids and semigroups
 
 ### Foldable
 
-### Functor, Apply, Applicative, Bind, Monad
+If the `Monoid` type class identifies those types which act as the result of a fold, then the `Foldable` type class identifies those type constructors which can be used as the source of a fold.
 
+The `Foldable` type class is provided in the `purescript-foldable-traversable` package, which also contains instances for some standard containers such as arrays and `Maybe`.
 
+The type signatures for the functions belonging to the `Foldable` class are a little more complicated than the ones we've seen so far:
 
+```
+class Foldable f where
+  foldr :: forall a b. (a -> b -> b) -> b -> f a -> b
+  foldl :: forall a b. (b -> a -> b) -> b -> f a -> b
+  foldMap :: forall a m. (Monoid m) => (a -> m) -> f a -> m
+```
+
+It is instructive to specialize to the case where `f` is the array type constructor. In this case, we can replace `f a` with `[a]` for any a, and we notice that the types of `foldl` and `foldr` become the types that we saw when we first encountered folds over arrays.
+
+What about `foldMap`? Well, that becomes `forall a m. (Monoid m) => (a -> m) -> [a] -> m`. This type signature says that we can choose any monoid for our result type. If we provide a function which turns our array elements into values in that monoid, then we can accumulate over our array using the structure of the monoid, and return a single value.
+
+Let's try out `foldMap` in `psci`:
+
+```
+> :i Data.Foldable
+
+> foldMap show [1, 2, 3, 4, 5]
+"12345"
+```
+
+Here, we choose the String monoid, which concatenates strings together, and the `show` function which renders a Number as a string. Then, passing in an array of Numbers, we see that the results of `show`ing each number have been concatenated into a single String.
+
+But arrays are not the only types which are foldable. `purescript-foldable-traversable` also defines `Foldable` instances for types like `Maybe` and `Tuple`, and other libraries like `purescript-lists` define `Foldable` instances for their own data types. `Foldable` abstracts the concept of an ordered container.
 
 ## Exercises
 
@@ -222,18 +247,104 @@ The `purescript-monoid` package provides many examples of monoids and semigroups
           }
           
   Define `Show` and `Eq` instances for `Complex`.
+1. (Medium) The following type defines a type of non-empty arrays of elements of type `a`:
+
+        data NonEmpty a = NonEmpty a [a]
+        
+  Write a `Semigroup` instance for non-empty arrays by reusing the `Semigroup` instance for `[]`.
+1. (Difficult) Write a `Foldable` instance for `NonEmpty`.
+
+## Type Annotations
+
+Types of functions can be constrained by using type classes. Here is an example: suppose we want to write a function which tests if three values are equal, by using equality defined using an `Eq` type class instance.
+
+```
+threeAreEqual :: forall a. (Eq a) => a -> a -> a -> Boolean
+threeAreEqual a1 a2 a3 = a1 == a2 && a2 == a3
+```
+
+The type declaration looks like an ordinary polymorphic type defined using `forall`. However, there is a type class constraint in parentheses, separated from the rest of the type by a double arrow `=>`.
+
+This type says that we can call `threeAreEqual` with any choice of type `a`, as long as there is an `Eq` instance available for `a` in one of the imported modules.
+
+Constrained types can contain several type class instances, and the types of the instances are not restricted to simple type variables. Here is another example which uses `Ord` and `Show` instances to compare two values:
+
+```
+showCompare :: forall a. (Ord a, Show a) => a -> a -> String
+showCompare a1 a2 | a1 < a2 = show a1 ++ " is less than " ++ show a2
+showCompare a1 a2 | a1 > a2 = show a1 ++ " is greater than " ++ show a2
+showCompare a1 a2 = show a1 ++ " is equal to " ++ show a2
+```
+
+There is an important restriction which applies when using functions which are constrained by a type class: the PureScript compiler will not infer a type which is constrained - a type annotation must be provided.
+
+To see this, try using one of the standard type classes like `Num` in `psci`:
+
+```
+> :t \x -> x + x
+
+Error in declaration it
+No instance found for Prelude.Num u2
+```
+
+Here, we try to find the type of a function which doubles a number by using the type's `Num` instance, but `psci` will not infer a constrained type for the function, and so reports that it was unable to find a type class instance for an unknown type.
+
+Instead, we must give a type signature, either as a type declaration for a top-level function declaration, or using the `::` operator:
+
+```
+> :t \x -> x + (x :: Number)
+
+Prim.Number -> Prim.Number
+```
   
-## Uniqueness of Instances
+## Overlapping Instances
+
+PureScript has another rule regarding type class instances, called the _overlapping instances rule_. Whenever a type class instance is required at a function call site, PureScript will use the information inferred by the type checker to choose the correct instance. At that time, there must be exactly one appropriate instance for that type.
+
+To demonstrate this, we can try creating two conflicting type class instances for an example type. In the following code, we create two overlapping `Show` instances for the type `T`:
+
+```
+module Overlapped where
+
+data T = T
+
+instance showT1 :: Show T where
+  show _ = "Instance 1"
+  
+instance showT2 :: Show T where
+  show _ = "Instance 2"
+```
+
+This module will compile with no errors. However, if we open it in `psci` and try to find a `Show` instance for the type `Overlapped`, the overlapping instances rule will be enforced, resulting in an error:
+
+```
+> show T
+  
+Compiling Overlapped
+Error in declaration it
+Overlapping instances found for Prelude.Show Overlapped.T
+```
+
+The overlapping instances rule is enforced so that automatic selection of type class instances is a predictable process. If we allowed two type class instances for a type to exist, then either could be chosen depending on the order of module imports, and that could lead to unpredictable behavior of the program at runtime, which is undesirable.
+
+If it is truly the case that there are two valid type class instances for a type, satisfying the appropriate laws, then a common approach is to define new data types which wrap the existing type. Since different data types are allowed to have different instances under the overlapping instances rule, there is no longer an issue. This approach is taken in PureScript's standard libraries, for example in `purescript-monoids`, where the `Maybe a` type has multiple valid instances for the `Monoid` type class. 
 
 ## Instance Dependencies
+
+## Exercises
+
+1. (Easy) Write an `Eq` instance for the type `NonEmpty a` which reuses the instances for `Eq a` and `Eq [a]`.
+1. (Medium) Given any type `a` with an instance of `Ord`, we can add a new element "at infinity":
+
+        data Extended a = Finite a | Infinite
+        
+  Write an `Ord` instance for `Extended a` which reuses the `Ord` instance for `a`.
 
 ## Multi Parameter Type Classes
 
 ## Nullary Type Classes
 
 ## Superclasses
-
-## Type Annotations
 
 ## A Type Class for Hashes
 
