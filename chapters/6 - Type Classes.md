@@ -480,19 +480,19 @@ The user of this library have two options:
 
 - The user can opt in to partiality in a module by declaring an instance of the `Partial` type class in that module.
 
-        ```
-        module Main where
-        
-        import Partial
-        
-        instance partial :: Partial
-        ```
+    ```
+    module Main where
+    
+    import Partial
+    
+    instance partial :: Partial
+    ```
 - Alternatively, the user can republish the `Partial` constraint for all functions making use of partial functions:
 
-        ```
-        secondElement :: forall a. (Partial) => [a] -> a
-        secondElement xs = head (tail xs)
-        ```
+    ```
+    secondElement :: forall a. (Partial) => [a] -> a
+    secondElement xs = head (tail xs)
+    ```
 
 ## Superclasses
 
