@@ -5,6 +5,8 @@ import Data.Tuple
 import Data.Either
 import Data.String
 
+import Data.Function
+
 type HashCode = Number
 
 class Hashable a where
@@ -12,6 +14,9 @@ class Hashable a where
 
 (<#>) :: HashCode -> HashCode -> HashCode
 (<#>) h1 h2 = (73 * h1 + 51 * h2) % 65536
+
+hashEqual :: forall a. (Hashable a) => a -> a -> Boolean
+hashEqual = (==) `on` hash
 
 instance hashString :: Hashable String where
   hash s = go 0 0
