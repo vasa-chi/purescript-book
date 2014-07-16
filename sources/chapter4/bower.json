@@ -1,6 +1,6 @@
 {
   "name": "purescript-book-chapter4",
-  "description": "Chapter 4 - Maps and Folds",
+  "description": "Chapter 4 - Recursion, Maps and Folds",
   "keywords": ["purescript"],
   "ignore": [
     "**/.*",

@@ -1,4 +1,4 @@
-# Maps And Folds
+# Recursion, Maps And Folds
 
 ## Chapter Goals
 

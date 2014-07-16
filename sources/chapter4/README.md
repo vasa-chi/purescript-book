@@ -1,6 +1,6 @@
 # purescript-book-chapter4
 
-Chapter 4 - Maps and Folds
+Chapter 4 - Recursion, Maps and Folds
 
 ## Building
 
