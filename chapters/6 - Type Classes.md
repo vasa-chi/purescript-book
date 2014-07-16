@@ -237,7 +237,7 @@ Here, we choose the String monoid, which concatenates strings together, and the 
 
 But arrays are not the only types which are foldable. `purescript-foldable-traversable` also defines `Foldable` instances for types like `Maybe` and `Tuple`, and other libraries like `purescript-lists` define `Foldable` instances for their own data types. `Foldable` abstracts the concept of an ordered container.
 
-## Functor, and Type Class Laws
+### Functor, and Type Class Laws
 
 The Prelude also defines a collection of type classes which are enable a functional style of programming with side-effects in PureScript: `Functor`, `Applicative` and `Monad`. We will cover these abstractions later in the book, but for now, let's look at the definition of the `Functor` type class, which we have seen already in the form of the lifting operator `<$>`:
 
@@ -410,7 +410,89 @@ When the program is compiled, the correct type class instance for `Show` is chos
 
 ## Multi Parameter Type Classes
 
+It's not the case that a type class can only take a single type as an argument. This is the most common case, but in fact, a type class can be parameterized by _zero or more_ type arguments.
+
+Let's see an example of a type class with two type arguments.
+
+```
+module Stream where
+
+import Data.Maybe
+import Data.Tuple
+import Data.String
+
+class Stream list element where
+  uncons :: list -> Maybe (Tuple element list)
+
+instance streamArray :: Stream [a] a where
+  uncons [] = Nothing
+  uncons (x : xs) = Just (Tuple x xs)
+
+instance streamString :: Stream String String where
+  uncons "" = Nothing
+  uncons s = Just (Tuple (take 1 s) (drop 1 s))
+```
+
+The `Stream` module defines a class `Stream` which identifies types which look like streams of elements, where elements can be pulled from the front of the stream using the `uncons` function.
+
+Note that the `Stream` type class is parameterized not only by the type of the stream itself, but also by its elements. This allows us to define type class instances for the same stream type but different element types.
+
+The module defines two type class instances: an instance for arrays, where `uncons` removes the head element of the array using pattern matching, and an instance for String, which removes the first character from a String.
+
+We can write functions which work over arbitrary streams. For example, here is a function which accumulates a result based on the elements of a stream:
+
+```
+foldStream :: forall list element r. (Stream list element) => (element -> r -> r) -> list -> r -> r
+foldStream f list r =
+  case uncons list of
+    Nothing -> r
+    Just (Tuple head tail) -> foldStream f tail (f head r)
+```
+
 ## Nullary Type Classes
+
+We can even define type classes with zero type arguments! These correspond to compile-time assertions about our functions, allowing us to track global properties of our code in the type system.
+
+For example, suppose we want to track the use of partial functions using the type system. We can define a type class `Partial` with no type arguments, and annotate all partial functions with a `Partial` constraint:
+
+```
+module Partial where
+
+class Partial
+
+head :: forall a. (Partial) => [a] -> a
+head (x : _) = x
+
+tail :: forall a. (Partial) => [a] -> [a]
+tail (_ : xs) = xs
+```
+
+Note that we do not define an instance for the `Partial` type class in its defining module. Doing so would defeat its purpose: with this definition, attempting to use the `head` function will result in a type error:
+
+```
+> Partial.head [1, 2, 3]
+  
+Error in declaration it
+No instance found for Partial.Partial 
+```
+
+The user of this library have two options: 
+
+- The user can opt in to partiality in a module by declaring an instance of the `Partial` type class in that module.
+
+        ```
+        module Main where
+        
+        import Partial
+        
+        instance partial :: Partial
+        ```
+- Alternatively, the user can republish the `Partial` constraint for all functions making use of partial functions:
+
+        ```
+        secondElement :: forall a. (Partial) => [a] -> a
+        secondElement xs = head (tail xs)
+        ```
 
 ## Superclasses
 
