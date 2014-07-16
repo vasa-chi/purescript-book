@@ -15,6 +15,7 @@ Create a new project with the following Bower dependencies:
 - `purescript-maybe`
 - `purescript-tuples`
 - `purescript-either`
+- `purescript-strings`
 
 Also create a new module called `Data.Hashable`:
 
@@ -24,6 +25,7 @@ module Data.Hashable where
 import Data.Maybe
 import Data.Tuple
 import Data.Either
+import Data.String
 ```
 
 ## Show Me!
