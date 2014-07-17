@@ -26,6 +26,7 @@ import Data.Maybe
 import Data.Tuple
 import Data.Either
 import Data.String
+import Data.Function
 ```
 
 ## Show Me!
@@ -546,8 +547,89 @@ class (Eq a) <= Hashable a where
 
 with the associated law that `a == b` implies `hash a == hash b`.
 
+We'll spend the rest of this section building a library of instances and functions associated with the `Hashable` type class.
+
+We will need a way to combine hash codes in a deterministic way. For our purposes, the following function will suffice to mix two hash codes and distribute the result over the interval 0-65535.
+
+```
+(<#>) :: HashCode -> HashCode -> HashCode
+(<#>) h1 h2 = (73 * h1 + 51 * h2) % 65536
+```
+
+This user-defined operator can be used infix to combine two hash codes `h1` and `h2` as follows: `h1 <#> h2`.
+
+Let's write a function which uses the `Hashable` constraint to restrict the types of its inputs. One common task which requires a hashing function is to determine if two values hash to the same hash code. The `hashEqual` relation provides such a capability:
+
+```
+hashEqual :: forall a. (Hashable a) => a -> a -> Boolean
+hashEqual = (==) `on` hash
+```
+
+This function uses the `on` function from `Data.Function` to define hash-equality in terms of equality of hash codes, and should read like a declarative definition of hash-equality: two values are "hash-equal" if they are equal after each value has been passed through the `hash` function.
+
+Let's write some `Hashable` instances for some primitive types. Let's start with an instance for strings. We will need some functions from the `Data.String` module, namely `length` and `charCodeAt`. The following `Hashable` instance works by iterating over the characters of the string, and using the `<#>` operator to combine the character codes with an accumulated hash code:
+
+```
+instance hashString :: Hashable String where
+  hash s = go 0 0
+    where
+    go :: Number -> HashCode -> HashCode
+    go i acc | i >= length s = acc
+    go i acc = go (i + 1) acc <#> charCodeAt i s
+```
+
+What about an instance for the `Number` type? Well, dealing with the JavaScript `Number` type presents some difficulties, due to the presence of floating point and infinite values, so for demonstration purposes, we will simplify matters by simply hashing the string representation of the number, as computed by `show`:
+
+```
+instance hashNumber :: Hashable Number where
+  hash n = hash (show n)
+```
+
+Note that the type class instance for `Number` necessarily uses the type class instance for `String`.
+
+The instance for the `Boolean` type is even simpler: we can simply assign two static hash codes to the two values of the type:
+
+```
+instance hashBoolean :: Hashable Boolean where
+  hash false = 0
+  hash true  = 1
+```
+
+How can we prove that these `Hashable` instances satisfy the type class law that we stated above? We need to make sure that equal values have equal hash codes. In the cases of `String` and `Boolean`, this is simple because there are no strings or boolean values which are equal in the sense of `Eq` but not equal identically.
+
+In the case of numbers, we have to simply convince ourselves that equal numbers have equal string representations, whence we can defer to the proof already given for strings.
+
+What about some more interesting types? Here is a `Hashable` instance for arrays, which combines hashes of the elements of the input array using `<#>`:
+
+```
+instance hashArray :: (Hashable a) => Hashable [a] where
+  hash [] = 0
+  hash (x : xs) = hash x <#> hash xs
+```
+
+To prove the type class law in this case, we can use induction on the length of the array. The only array with length zero is `[]`. Any two non-empty arrays are equal only if they have equals head elements and equal tails, by the definition of `Eq` on arrays. By the inductive hypothesis, the tails have equal hashes, and we know that the head elements have equal hashes if the `Hashable a` instance must satisfy the law. Therefore, the two arrays have equal hashes, and so the `Hashable [a]` upholds the type class law as well.
+
+The source code for this chapter includes several other examples of `Hashable` instances, such as instances for the `Maybe` and `Tuple` type.
+
 ## Exercises
 
-1. 
+1. (Easy) Use `psci` to test the hash functions for each of the defined instances.
+1. (Easy) Use the `hashEqual` function to write a function which tests if an array has any duplicate elements, using hash-equality as an approximation to value equality. Rememeber to check for value equality using `==` if a duplicate pair is found.
+1. (Medium) Write a `Hashable` instance for the following type which upholds the type class law:
+
+    ```
+    data Uniform = Uniform Number
+    
+    instance eqUniform :: Eq Uniform where
+      (==) (Uniform u1) (Uniform u2) = u1 % 1.0 == u2 % 1.0 
+      (/=) (Uniform u1) (Uniform u2) = u1 % 1.0 /= u2 % 1.0 
+    ```
+    
+  The type `Uniform` and its `Eq` instance represent the type of numbers with the equivalence relation of having equal fractional parts. Prove that the type class law holds for your instance.
+1. (Difficult) Prove the type class laws for the `Hashable` instances for `Maybe`, `Either` and `Tuple`.
 
 ## Conclusion
+
+In this chapter, we've been introduced to _tyoe classes_, a type-oriented form of abstraction which enables powerful forms of code reuse. We've seen a collection of standard type classes from the PureScript standard libraries, and defined our own library based on a type class for computing hash codes.
+
+This chapter also gave an introduction to the notion of type class laws, a technique for proving properties about code which uses type classes for abstraction. Type class laws are part of a larger subject called _equational reasoning_, in which the properties of a programming language and its type system are used to enable logical reasoning about its programs. This is an important idea, and will be a theme which we will return to throughout the rest of the book.
