@@ -9,7 +9,7 @@ import Data.Function
 
 type HashCode = Number
 
-class Hashable a where
+class (Eq a) <= Hashable a where
   hash :: a -> HashCode
 
 (<#>) :: HashCode -> HashCode -> HashCode
