@@ -498,6 +498,56 @@ The user of this library have two options:
 
 ## Superclasses
 
+Just as we can express relationships between type class instances by making an instance dependent on another instance, we can express relationships between type classes themselves using so-called _superclasses_.
+
+We say that one type class is a superclass of another if every instance of the second class is required to be an instance of the first, and we indicate a superclass relationship in the class definition by using a backwards facing double arrow. 
+
+We've already seen one example of a superclass relationship: the `Eq` class is a superclass of `Ord`. For every type class instance of the `Ord` class, there must be a corresponding `Eq` instance for the same type. This makes sense, since in many cases, when the `compare` function reports that two values are incomparable, we often want to use the `Eq` class to determine if they are in fact equal.
+
+In general, it makes sense to define a superclass relationship when the laws for the subclass mention the members of the superclass. For example, it is reasonable to assume, for any pair of `Ord` and `Eq` instances, that if two values are equal under the `Eq` instance, then the `compare` function should return `EQ`. In order words, `a == b` implies `compare a b == EQ`. This relationship on the level of laws justifies the superclass relationship between `Eq` and `Ord`.
+
+Another reason to define a superclass relationship is in the case where there is a clear "is-a" relationship between the two classes. That is, every member of the subclass _is a_ member of the superclass as well.
+
+## Exercises
+
+1. (Easy) The `Action` class is a multi-parameter type class which defines an action of one type on another:
+
+        class (Monoid m) <= Action m a where
+          act :: m -> a -> a
+          
+  (An _action_ is just a function which describes how one type can be used to modify another)
+  
+  Write down a reasonable set of laws which describe how the `Action` class should interact with the `Monoid` class.
+1. (Medium) Write an instance `Action m a => Action m [a]`, where the action on arrays is defined by acting element-wise.
+1. (Difficult) Given the following data type, write an instance for `Action m (Self m)`, where the monoid `m` acts on itself by concatenation:
+
+        data Self m = Self m
+1. (Medium) Define a nullary type class `Unsafe` and use it to define a version of the `unsafeIndex` function from the `Prelude.Unsafe` module, which uses your constraint to express its lack of type-safety. Use your function to define a function `last` which chooses the last element of an array, and which preserves the `Unsafe` constraint.
+
 ## A Type Class for Hashes
+
+In the last section, we will use the work of the rest of the chapter to practical effect, to create a library for hashing data structures.
+
+Note that this library is for demonstration purposes only, and is not intended to provide a robust hashing mechanism.
+
+What properties might we expect of a hash function?
+
+- A hash function should be deterministic, and map equal values to equal hash codes.
+- A hash function should distribute its results approximately uniformly over some set of hash codes.
+
+The first property looks a lot like a law for a type class, whereas the second property is more along the lines of an informal contract, and certainly would not be enforceable by PureScript's type system. However, this should provide the intuition for the following type class:
+
+```
+type HashCode = Number
+
+class (Eq a) <= Hashable a where
+  hash :: a -> Number 
+```
+
+with the associated law that `a == b` implies `hash a == hash b`.
+
+## Exercises
+
+1. 
 
 ## Conclusion
