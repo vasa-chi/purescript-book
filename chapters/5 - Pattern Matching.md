@@ -275,7 +275,7 @@ This declaration defines `Shape` as a sum of different constructors, and for eac
 
 An algebraic data type is always introduced using the `data` keyword, followed by the name of the new type and any type arguments. The type's constructors are defined after the equals symbol, and are separated by pipe characters (`|`).
 
-Let's see another example from PureScript's standard libraries. We saw the `Maybe` type, which is used to to define optional values, earlier in the book. Here is it's definition from the `purescript-maybe` oackage:
+Let's see another example from PureScript's standard libraries. We saw the `Maybe` type, which is used to to define optional values, earlier in the book. Here is it's definition from the `purescript-maybe` package:
 
 ```
 data Maybe a = Nothing | Just a
